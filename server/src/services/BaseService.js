@@ -59,6 +59,9 @@ export default class BaseService {
 
     async delete(id) {
         if (!id) throw new ValidationError("ID é obrigatório");
+        const found = this.model.findById(id);
+        if (!found) throw new ValidationError("Registro não encontrado.");
+
         try {
             const deleted = await this.model.findByIdAndDelete(id);
             if (!deleted) throw new NotFoundError("Registro não encontrado");

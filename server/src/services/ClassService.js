@@ -106,9 +106,9 @@ class ClassService extends BaseService {
     }
 
     async getTeachers(id) {
-        if (!id) throw new ValidationError("ID é obrigatório");
+        if (!id) throw new ValidationError("Código da turma é obrigatório");
         try {
-            const classData = await this.model.findById(id).populate("teachers", "name role isActive");
+            const classData = await this.model.findOne({ _id: id }).populate("teachers", "name role isActive");
             if (!classData) throw new NotFoundError("Essa turma não possui professores.");
             return classData;
         } catch (err) {

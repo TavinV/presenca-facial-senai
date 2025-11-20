@@ -1,5 +1,6 @@
 import ApiResponse from "../utils/ApiResponse.js";
 import ClassService from "../services/ClassService.js";
+import StudentService from "../services/StudentService.js";
 import controllerWrapper from "../utils/controllerWrapper.js";
 
 const classController = {
@@ -47,7 +48,6 @@ const classController = {
     // Listar professores autorizados da turma
     getTeachers: controllerWrapper(async (req, res) => {
         const id = req.params.id;
-
         const classData = await ClassService.getTeachers(id);
 
         if (!classData) {
@@ -72,6 +72,12 @@ const classController = {
         const updatedClass = await ClassService.removeTeacher(id, teacherId);
         return ApiResponse.OK(res, "Professor removido da turma com sucesso.", updatedClass);
     }),
+
+    getStudents: controllerWrapper(async (req, res) =>{
+        const id = req.params.id;
+        const students = await StudentService.getByClassCode(id);
+        return ApiResponse.OK(res, "", students);        
+    })
 };
 
 export default classController;

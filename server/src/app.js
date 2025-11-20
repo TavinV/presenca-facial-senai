@@ -34,10 +34,16 @@ import healthRoutes from './routes/healthRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import classRoutes from './routes/classRoutes.js'
+import studentRoutes from './routes/studentRoutes.js';
+import classSessionRoutes from './routes/classSessionRoutes.js';
+import attendanceRoutes from './routes/attendanceRoutes.js';
 
 app.use('/api/health', healthRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/classes', classRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/class-sessions', classSessionRoutes);
+app.use('/api/attendances', attendanceRoutes)
 
 export default app;
