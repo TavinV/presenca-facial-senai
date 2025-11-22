@@ -28,7 +28,7 @@ export const attendanceSchemas = {
 
     // Presença manual
     manual: Joi.object({
-        sessionId: objectId.required().messages({
+        classSessionId: objectId.required().messages({
             "any.required": "O ID da sessão é obrigatório."
         }),
 
@@ -45,4 +45,25 @@ export const attendanceSchemas = {
                 "any.required": "O status é obrigatório."
             })
     }),
+
+    // 🔹 Atualizar presença
+    update: Joi.object({
+        status: Joi.string()
+            .valid("presente", "atrasado", "ausente")
+            .optional()
+            .messages({
+                "any.only": "O status deve ser 'presente', 'atrasado' ou 'ausente'.",
+                "string.base": "O status deve ser um texto válido."
+            }),
+
+        checkInTime: Joi.date()
+            .optional()
+            .messages({
+                "date.base": "O horário de check-in deve ser uma data válida."
+            })
+    })
+        .min(1)
+        .messages({
+            "object.min": "Envie ao menos um campo para atualização."
+        })
 };

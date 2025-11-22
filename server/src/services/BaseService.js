@@ -33,6 +33,11 @@ export default class BaseService {
         }
     }
 
+    async bulkCreate(attList) {
+        return this.model.insertMany(attList);
+    }
+
+
     async create(data) {
         if (!data) throw new ValidationError("Dados obrigatórios ausentes");
         try {

@@ -82,7 +82,6 @@ class UserService extends BaseService {
     async matchUserLogin(email, password){
         const userByEmail = await this.getByEmail(email);
         const isMatch = await bcrypt.compare(password, userByEmail.password);
-
         if (!isMatch){
             throw new ValidationError("Credenciais inválidas")
         }

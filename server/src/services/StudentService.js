@@ -12,6 +12,9 @@ class StudentService extends BaseService {
         super(Student);
     }
 
+
+    
+
     /**
      * Criar aluno
      */

@@ -14,7 +14,7 @@ const sessionSchema = new mongoose.Schema(
             required: true
         },
 
-        name: {   // ← NOVO CAMPO OBRIGATÓRIO
+        name: { 
             type: String,
             required: true,
             trim: true,

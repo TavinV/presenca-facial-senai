@@ -7,21 +7,53 @@ import facialApiAuth from "../middlewares/facialApiAuth.js";
 
 const router = Router();
 
-// 🔹 Criar registro de presença
+// --- CREATE ---
 router.post(
     "/manual",
     authenticateJWT(),
-    validateRequest(attendanceSchemas.create),
+    validateRequest(attendanceSchemas.manual),
     attendanceController.markManual
 );
 
 router.post(
     "/facial",
     facialApiAuth,
+    validateRequest(attendanceSchemas.markByFace),
     attendanceController.markByFace
-)
+);
 
-// 🔹 Atualizar registro
+// --- READ ---
+router.get(
+    "/session/:sessionId",
+    authenticateJWT(),
+    attendanceController.getBySession
+);
+
+router.get(
+    "/student/:studentId",
+    authenticateJWT(),
+    attendanceController.getByStudent
+);
+
+router.get(
+    "/class/:classCode/today",
+    authenticateJWT(),
+    attendanceController.getTodayByClass
+);
+
+router.get(
+    "/class/:classCode/range",
+    authenticateJWT(),
+    attendanceController.getRangeByClass
+);
+
+router.get(
+    "/session/:sessionId/full-report",
+    authenticateJWT(),
+    attendanceController.getFullReportBySession
+);
+
+// --- UPDATE ---
 router.patch(
     "/:id",
     authenticateJWT(),
@@ -29,11 +61,18 @@ router.patch(
     attendanceController.update
 );
 
-// 🔹 Deletar registro
+// --- DELETE ---
 router.delete(
     "/:id",
     authenticateJWT(),
     attendanceController.delete
+);
+
+// --- AUTO ABSENCES ---
+router.post(
+    "/session/:sessionId/auto-absences",
+    authenticateJWT("coordenador"),
+    attendanceController.markAbsencesForSession
 );
 
 export default router;

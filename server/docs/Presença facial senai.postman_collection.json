@@ -760,7 +760,7 @@
 					"response": []
 				},
 				{
-					"name": "Buscar professores de uma turma (id + id)",
+					"name": "Buscar professores de uma turma (id)",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -1355,14 +1355,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseurl}}/class-sessions/class/691ebd3c495ff4118f593289",
+							"raw": "{{baseurl}}/class-sessions/class/67b2d9a4f901a12c34567890",
 							"host": [
 								"{{baseurl}}"
 							],
 							"path": [
 								"class-sessions",
 								"class",
-								"691ebd3c495ff4118f593289"
+								"67b2d9a4f901a12c34567890"
 							]
 						}
 					},
@@ -1443,7 +1443,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"6760d1b2ac901bdcd8c61f88\",\r\n  \"status\": \"present\"\r\n}",
+							"raw": "{\r\n  \"studentId\": \"691e7e50b7e21554cdb9f443\",\r\n  \"classSessionId\": \"691eb75e69c1f42e3166b622\",\r\n  \"status\": \"ausente\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1501,6 +1501,216 @@
 							"path": [
 								"attendances",
 								"facial"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gerar relatório de aula Copy",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "675a98139d44c245128e17a3",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"691ebd3c495ff4118f593289\",\r\n  \"status\": \"absent\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/attendances/session/691eb75e69c1f42e3166b622/auto-absences",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"attendances",
+								"session",
+								"691eb75e69c1f42e3166b622",
+								"auto-absences"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar presença (id)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "675a98139d44c245128e17a3",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"691ebd3c495ff4118f593289\",\r\n  \"status\": \"presente\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurl}}/attendances/6921107a71e78d78c1ae314e",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"attendances",
+								"6921107a71e78d78c1ae314e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar presenças de uma aula (id)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "675a98139d44c245128e17a3",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"691ebd3c495ff4118f593289\",\r\n  \"status\": \"absent\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/attendances/session/691eb75e69c1f42e3166b622",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"attendances",
+								"session",
+								"691eb75e69c1f42e3166b622"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Gerar relatório de aula",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "675a98139d44c245128e17a3",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"691ebd3c495ff4118f593289\",\r\n  \"status\": \"absent\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/attendances/session/691eb75e69c1f42e3166b622/full-report",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"attendances",
+								"session",
+								"691eb75e69c1f42e3166b622",
+								"full-report"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar presenças de um aluno (id)",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-api-key",
+								"value": "675a98139d44c245128e17a3",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"studentId\": \"6760d1b2ac901bdcd8c61e92\",\r\n  \"classSessionId\": \"691ebd3c495ff4118f593289\",\r\n  \"status\": \"absent\"\r\n}"
+						},
+						"url": {
+							"raw": "{{baseurl}}/attendances/student/691e7e50b7e21554cdb9f443",
+							"host": [
+								"{{baseurl}}"
+							],
+							"path": [
+								"attendances",
+								"student",
+								"691e7e50b7e21554cdb9f443"
 							]
 						}
 					},
