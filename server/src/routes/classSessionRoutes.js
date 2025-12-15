@@ -13,7 +13,7 @@ const router = express.Router();
 router.post(
     "/",
     authenticateJWT(),
-    validateRequest(classSessionSchemas.create),
+    // validateRequest(classSessionSchemas.create),
     classSessionController.create
 );
 

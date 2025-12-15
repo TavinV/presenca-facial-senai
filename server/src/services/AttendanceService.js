@@ -57,6 +57,7 @@ class AttendanceService extends BaseService {
             student: student._id,
         });
 
+
         if (alreadyExists)
             throw new ConflictError("Presença já registrada.");
 

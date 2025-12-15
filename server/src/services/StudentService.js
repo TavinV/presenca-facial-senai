@@ -131,7 +131,7 @@ class StudentService extends BaseService {
 
         classCode = classCode.toUpperCase();
         
-        student.classes = student.classes.filter(c => c !== classCode);
+        student.classes = student.classes.filter(c => c != classCode);
         await student.save();
 
         return student;
@@ -192,12 +192,22 @@ class StudentService extends BaseService {
                 }
             }
 
+            // Carregando as salas físicas (rooms) associadas às turmas do aluno
+            const roomsSet = new Set();
+            for (const classId of classIds) {
+                const classData = await Class.findById(classId, "rooms").lean();
+                if (classData && classData.rooms) {
+                    classData.rooms.forEach(roomId => roomsSet.add(roomId.toString()));
+                }
+            }
+            const rooms = Array.from(roomsSet);
+
             // Só adiciona se o aluno tiver ao menos uma turma válida
             if (classIds.length > 0) {
                 result.push({
                     _id: student._id.toString(),
                     facial: student.facialId,
-                    salas: classIds
+                    rooms
                 });
             }
         }
