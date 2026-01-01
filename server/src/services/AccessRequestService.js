@@ -1,5 +1,5 @@
 import BaseService from "./BaseService.js";
-import AccessRequest from "../models/AccessRequest.js";
+import AccessRequest from "../models/AccessRequestModel.js";
 import { NotFoundError } from "../errors/appError.js";
 
 class AccessRequestService extends BaseService {
