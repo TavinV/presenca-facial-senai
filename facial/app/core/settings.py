@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     FACIAL_API_URL: str | None = None
     MAIN_API_URL: str
     SYNC_INTERVAL_SECONDS: int = 60
-
+    PRODUCTION: bool = False
     FACE_MATCH_THRESHOLD: float = 0.6
 
     class Config:
