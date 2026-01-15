@@ -1,6 +1,5 @@
 import express from "express";
-import cors from "cors";
-import helmet from "helmet";
+import corsMiddleware from "./config/cors.js";
 import rateLimit from "express-rate-limit";
 import { configDotenv } from "dotenv";
 import { connectDB } from "./config/db.js";
@@ -16,16 +15,9 @@ connectDB();
 // Middlewares globais
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
+app.use(corsMiddleware);
 
-// Configuração de CORS para permitir requisições de qualquer origem
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: false
-}));
-
-// Rate limiting (exemplo: máx. 100 reqs por 15 min)
+// Rate limiting 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
