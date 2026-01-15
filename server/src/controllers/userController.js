@@ -1,11 +1,43 @@
 import ApiResponse from "../utils/ApiResponse.js";
 import UserService from "../services/UserService.js";
 import controllerWrapper from "../utils/controllerWrapper.js";
+import AccessRequestService from "../services/AccessRequestService.js";
+
+import { userSchemas } from "../validations/userValidation.js";
 
 const userController = {
     create: controllerWrapper(async (req, res) => {
-        const user = await UserService.create(req.body);
-        return ApiResponse.CREATED(res, "Usuário criado com sucesso.", user);
+        const requestId = req.body.accessRequestId;
+
+        if (!requestId){
+            return ApiResponse.BADREQUEST(res, "O ID da requisição de acesso é obrigatório.");
+        }
+
+        const requestInfo = await AccessRequestService.getByIdSensitive(requestId);
+
+        if (!requestInfo){
+            return ApiResponse.NOTFOUND(res, "Requisição de acesso não encontrada.");
+        }
+
+        const {error, value} = userSchemas.create.validate({
+            name: requestInfo.name,
+            email: requestInfo.email,
+            password: requestInfo.password,
+            role: requestInfo.role,
+        }, {abortEarly: true, stripUnknown: true});
+
+        if (error){
+            return ApiResponse.BADREQUEST(res, `Dados de usuário inválidos: ${error.message}`);
+        }
+
+        const newUser = await UserService.create(value);
+        
+        if (!newUser){
+            return ApiResponse.ERROR(res, "Erro ao criar o usuário.");
+        }
+
+        AccessRequestService.delete(requestId);
+        return ApiResponse.CREATED(res, "Usuário criado com sucesso.", newUser);
     }),
 
     getAll: controllerWrapper(async (req, res) => {

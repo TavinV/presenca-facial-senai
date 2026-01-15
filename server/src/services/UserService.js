@@ -32,25 +32,7 @@ class UserService extends BaseService {
     /**
      * Criação de usuário com hash de senha
      */
-    async create(accessRequestId) {
-        const accessRequest = await AccessRequestService.getById(accessRequestId);
-        if (!accessRequest) {
-            throw new NotFoundError("Requisição de acesso não encontrada.");
-        }
-        const userData = {
-            name: accessRequest.name,
-            cpf: accessRequest.cpf,
-            email: accessRequest.email,
-            password: accessRequest.password,
-            role: accessRequest.role,
-        };
-
-        // Validar dados antes de criar
-        const { error } = userSchemas.create.validate(userData);
-        if (error) {
-            throw new ValidationError(`Dados de usuário inválidos: ${error.message}`);
-        }
-        
+    async create(userData) {
         const created = await super.create(userData);
         return this.#stripSensitiveData(created);
     }

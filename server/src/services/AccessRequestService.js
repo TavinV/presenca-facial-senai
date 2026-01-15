@@ -34,6 +34,14 @@ class AccessRequestService extends BaseService {
         return this.#stripSensitiveData(accessRequest);
     }
 
+    async getByIdSensitive(id) {
+        const accessRequest = await super.getById(id);
+        if (!accessRequest) {
+            throw new NotFoundError("Requisição de acesso não encontrada.");
+        }
+        return accessRequest;
+    }
+
     async getAll() {
         const accessRequests = await super.getAll();
         return this.#stripSensitiveArray(accessRequests);

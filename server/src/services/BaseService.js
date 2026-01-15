@@ -45,8 +45,10 @@ export default class BaseService {
         } catch (err) {
 
             // erro de índice único → duplicidade
-            if (err.code === 11000)
-                throw new ConflictError("Registro duplicado (campo único já existe)");
+            if (err.code === 11000){
+                const field = Object.keys(err.keyValue)[0];
+                throw new ConflictError("Registro duplicado, já existe um registro com o mesmo " + field + ".");
+            }
 
             // erro de validação mongoose
             if (err.name === "ValidationError")

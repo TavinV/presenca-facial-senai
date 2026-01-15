@@ -16,13 +16,14 @@ const baseSchema = {
         }),
 
     cpf: Joi.string()
-        .pattern(/^\d{11}$/)
+        .pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)
         .messages({
             "string.base": "O CPF deve ser um texto válido.",
             "string.empty": "O CPF não pode estar vazio.",
-            "string.pattern.base": "O CPF deve conter exatamente 11 números.",
+            "string.pattern.base": "O CPF deve estar no formato xxx.xxx.xxx-xx.",
             "any.required": "O CPF é obrigatório."
         }),
+
 
     email: Joi.string()
         .email()
@@ -47,10 +48,10 @@ const baseSchema = {
     role: Joi.string()
         .valid("professor", "coordenador")
         .messages({
-            "any.only": "O papel deve ser professor ou coordenador.",
-            "string.base": "O papel deve ser um texto válido.",
-            "string.empty": "O papel é obrigatório.",
-            "any.required": "O papel é obrigatório."
+            "any.only": "O cargo deve ser professor ou coordenador.",
+            "string.base": "O cargo deve ser um texto válido.",
+            "string.empty": "O cargo é obrigatório.",
+            "any.required": "O cargo é obrigatório."
         }),
 
     status: Joi.string()
@@ -76,14 +77,10 @@ export const accessRequestSchemas = {
 
     // Atualização de solicitação de acesso
     update: Joi.object({
-        name: baseSchema.name.optional(),
-        email: baseSchema.email.optional(),
-        password: baseSchema.password.optional(),
-        role: baseSchema.role.optional(),
-        status: baseSchema.status.optional(),
+        status: baseSchema.status.required(),
     })
         .min(1)
         .messages({
-            "object.min": "Envie pelo menos um campo para atualização."
+            "any.required": "O status é obrigatório."
         }),
 };

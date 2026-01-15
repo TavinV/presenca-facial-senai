@@ -9,7 +9,8 @@ const AccessRequestController = {
      */
     getByCpf: controllerWrapper(async (req, res) => {
         const { cpf } = req.params;
-        const accessRequest = await AccessRequestService.getByCpf(cpf);
+        const formatedCpf = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        const accessRequest = await AccessRequestService.getByCpf(formatedCpf);
         return ApiResponse.OK(res, "", accessRequest);
     }),
 
@@ -48,7 +49,7 @@ const AccessRequestController = {
     updateStatus: controllerWrapper(async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
-        const updatedAccessRequest = await AccessRequestService.updateStatus(id, status);
+        const updatedAccessRequest = await AccessRequestService.update(id, { status });
         return ApiResponse.OK(res, "Status da requisição de acesso atualizado com sucesso.", updatedAccessRequest);
     }),
 

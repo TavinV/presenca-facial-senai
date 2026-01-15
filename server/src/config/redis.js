@@ -15,4 +15,5 @@ redis.on('error', (err) => {
     console.error('Erro ao conectar ao Redis:', err);
     process.exit(1); // Encerra a aplicação em caso de erro
 });
+
 export default redis;

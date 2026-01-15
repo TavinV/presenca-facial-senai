@@ -24,7 +24,7 @@ const baseSchema = {
 
     password: Joi.string()
         .min(6)
-        .max(50)
+        .max(200)
         .messages({
             "string.base": "A senha deve ser um texto válido.",
             "string.empty": "A senha é obrigatória.",
