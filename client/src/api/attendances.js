@@ -6,7 +6,8 @@ export const attendancesApi = {
 
     createManual: (attendanceData) => api.post('/attendances/manual', attendanceData),
 
-    createFacial: (attendanceData) => api.post('/attendances/facial', attendanceData),
+    createFacial: (attendanceData, headers = {}) =>
+        api.post('/attendances/facial', attendanceData, { headers }),
 
     update: (id, attendanceData) => api.patch(`/attendances/${id}`, attendanceData),
 

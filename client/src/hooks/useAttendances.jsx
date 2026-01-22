@@ -38,24 +38,22 @@ export default function useAttendances() {
 
       const formData = new FormData();
       formData.append("image", imageFile); // OBRIGATÓRIO
+      formData.append("timestamp", Date.now().toString()); // OPCIONAL
+      console.log("Totem API Key:", totemApiKey);
 
-      const response = await attendancesApi.createFacial(formData, {
-        headers: {
-          "x-totem-api-key": totemApiKey,
-        },
-      });
-
-      const { success, data, message } = response.data;
-
+      const response = await attendancesApi.createFacial(formData, {"x-totem-api-key": totemApiKey});
+      console.log("Resposta do createFacial:", response);
+      const { success, data, message } = response;
+      const student = data?.student;
       if (success) {
         return { success: true, data };
       }
-
+      
       setError(message);
       return { success: false, message };
     } catch (err) {
       const message =
-        err.response?.data?.message || "Erro no reconhecimento facial";
+        err?.message || "Erro no reconhecimento facial";
       setError(message);
       return { success: false, message };
     } finally {

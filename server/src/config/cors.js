@@ -12,7 +12,7 @@ const productionOrigins = [
 const corsOptions = {
     origin: environment === "production" ? productionOrigins : "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-facial-api-key"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-facial-api-key", "x-totem-api-key"],
     credentials: environment === "production",
 };
 
