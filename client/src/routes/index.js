@@ -1,12 +1,14 @@
 // Configuração centralizada de todas as rotas do sistema
 // Altere aqui para refletir em todo o sistema
 
-export const ROUTES = {
+export const                ROUTES = {
     // Rotas públicas
     PUBLIC: {
         LOGIN: '/login',
         REQUEST_ACCESS: '/request-access',
+        
         // Adicione outras rotas públicas aqui
+        TOTEM: '/totem'
     },
 
     // Rotas privadas
@@ -17,6 +19,7 @@ export const ROUTES = {
             DETAIL: '/classes/:id',
             CREATE: '/classes/new',
             EDIT: '/classes/:id/edit',
+            OVERVIEW: '/classes/:id/students',
         },
         STUDENTS: {
             LIST: '/students',
@@ -31,10 +34,13 @@ export const ROUTES = {
             EDIT: '/teachers/:id/edit',
         },
         SESSIONS: {
-            LIST: '/sessions',
-            CREATE: '/sessions/new',
-            ACTIVE: '/sessions/:id/active',
-            REPORT: '/sessions/:id/report',
+            BY_CLASS: '/class-sessions/class/:id',
+            BY_TEACHER: '/class-sessions/teacher/:id',
+            LIST: '/class-sessions/list',
+            CREATE: '/class-sessions/',
+            EDIT: '/class-sessions/:Id',
+            ACTIVE: '/class-sessions/:id/active',
+            REPORT: '/class-sessions/:id/report',
         },
         ATTENDANCE: {
             MANUAL: '/attendance/manual',
@@ -49,6 +55,7 @@ export const ROUTES = {
             LIST: '/totems',
             CREATE: '/totems/new',
             DETAIL: '/totems/:id',
+            EDIT: '/totems/:id/edit',
         },
         REPORTS: {
             MAIN: '/reports',

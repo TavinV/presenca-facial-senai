@@ -9,6 +9,8 @@ export const classesApi = {
 
     getByName: (name) => api.get(`/classes/name/${name}`),
 
+    getStudents: (id) => api.get(`/classes/${id}/students`),
+
     create: (classData) => api.post('/classes', classData),
 
     update: (id, classData) => api.patch(`/classes/${id}`, classData),

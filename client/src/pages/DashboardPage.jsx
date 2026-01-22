@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/layout/Layout';
 
+
 export default function DashboardPage() {
     const { user } = useAuth();
 
@@ -50,13 +51,11 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Turmas cadastradas</span>
                             <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                0
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Alunos cadastrados</span>
                             <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                0
                             </span>
                         </div>
                     </div>

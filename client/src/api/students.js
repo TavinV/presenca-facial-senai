@@ -8,6 +8,9 @@ export const studentsApi = {
     // GET - Listar alunos por turma
     getByClass: (classCode) => api.get(`/students/class/${classCode}`),
 
+    // GET - Obter aluno por ID
+    getById: (id) => api.get(`/students/${id}`),
+
     // POST - Criar aluno
     create: (studentData) => api.post('/students', studentData),
 
