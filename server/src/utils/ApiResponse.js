@@ -35,6 +35,10 @@ export default class ApiResponse {
         return new ApiResponse(true, 200, message, data).send(res);
     }
 
+    static OK_PAGINATED(res, message = "Operação bem-sucedida", page, limit, totalPages, data = null) {
+        return new ApiResponse(true, 200, message, {page, limit, totalPages, data} ).send(res);
+    }
+
     static CREATED(res, message = "Recurso criado com sucesso", data = null) {
         return new ApiResponse(true, 201, message, data).send(res);
     }

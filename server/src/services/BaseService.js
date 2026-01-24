@@ -22,6 +22,21 @@ export default class BaseService {
         }
     }
 
+    async getAllPaginated({page = 1, limit = 10, filter = {}}) {
+        try {
+            const skip = (page - 1) * limit;
+            const [items, total] = await Promise.all([
+                this.model.find(filter).skip(skip).limit(limit),
+                this.model.countDocuments(filter)
+            ]);
+            const totalPages = Math.ceil(total / limit);
+
+            return { items, total, page, limit, totalPages };
+        } catch (error) {
+            throw new AppError(`Erro ao buscar registros de ${this.model.modelName} paginados`);
+        }
+    }
+
     async getById(id) {
         if (!id) throw new ValidationError("ID é obrigatório");
         try {

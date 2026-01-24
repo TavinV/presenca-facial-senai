@@ -9,8 +9,17 @@ class StudentController {
     });
 
     getAll = controllerWrapper(async (req, res) => {
-        const students = await StudentService.getAll();
-        return ApiResponse.OK(res, "", students);
+        let { page, limit, filter } = req.query;
+        
+        page = Number(page) || 1;
+        limit = Number(limit) || 10;
+        filter = filter ? JSON.parse(filter) : {};
+
+        if (page && limit) {
+            const paginatedResult = await StudentService.getAllPaginated({page, limit, filter});
+            return ApiResponse.OK_PAGINATED(res, "", paginatedResult.page, paginatedResult.limit, paginatedResult.totalPages, paginatedResult.items);
+        }
+
     });
 
     getById = controllerWrapper(async (req, res) => {

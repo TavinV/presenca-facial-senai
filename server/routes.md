@@ -153,9 +153,32 @@ Criar novo usuário.
 
 ---
 
+### POST /api/users/root
+
+Criar usuário root do sistema, caso não haja um ainda. utiliza as credenciais salvas nas variáveis de ambiente.
+
+**Resposta (201 Created):**
+
+```json
+{
+    "success": true,
+    "status": 201,
+    "message": "Usuário root criado com sucesso."
+}
+```
+
+---
+
 ### GET /api/users
 
-Listar todos os usuários.
+Listar todos os usuários. (contem paginação via query params).
+#### Paginação padrão:
+
+| limit | page | filter |
+| ---   | ---  | ---    | 
+|  10   |   1  |  {}    |
+
+---
 
 **Autenticação:** JWT
 
@@ -164,17 +187,23 @@ Listar todos os usuários.
 {
   "success": true,
   "message": "",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439011",
-      "name": "Professor João",
-      "email": "joao@escola.edu",
-      "role": "professor",
-      "isActive": true,
-      "createdAt": "2025-12-15T10:30:00Z",
-      "updatedAt": "2025-12-15T10:30:00Z"
+  "data": {
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1,
+      [  
+        {
+          "_id": "507f1f77bcf86cd799439011",
+          "name": "Professor João",
+          "email": "joao@escola.edu",
+          "role": "professor",
+          "isActive": true,
+          "createdAt": "2025-12-15T10:30:00Z",
+          "updatedAt": "2025-12-15T10:30:00Z"
+        }
+      ]
     }
-  ]
+  
 }
 ```
 
@@ -1073,16 +1102,19 @@ Criar novo aluno.
 {
   "name": "Aluno João",
   "registration": "2025001",
-  "facialId": "facial_embedding_string_long",
-  "classCode": "I2P4"
+  "facialEmbedding": {
+    "embedding": "Embedding facial encriptado via AES-256-gcm",
+    "nonce": "nonce do facial" 
+  },
+  "classes": ["I2P4"]
 }
 ```
 
 **Validação:**
 - `name`: string, 3-100 caracteres (obrigatório)
 - `registration`: string, 3-50 caracteres, único (obrigatório)
-- `facialId`: string, 128-1000 caracteres, único (obrigatório)
-- `classCode`: string, 2-20 caracteres, uppercase (obrigatório)
+- `facialEmbedding`: objeto com "embedding" e "nonce", único (opcional, por conta da LGPD)
+- `classes`: string array, uppercase (obrigatório)
 
 **Resposta (201 Created):**
 ```json
@@ -1093,7 +1125,6 @@ Criar novo aluno.
     "_id": "507f1f77bcf86cd799439014",
     "name": "Aluno João",
     "registration": "2025001",
-    "facialId": "facial_embedding_string_long",
     "classes": ["I2P4"],
     "isActive": true,
     "createdAt": "2025-12-15T10:30:00Z",
@@ -1106,7 +1137,14 @@ Criar novo aluno.
 
 ### GET /api/students
 
-Listar todos os alunos.
+Listar todos os alunos (contem paginação via query params).
+#### Paginação padrão:
+
+| limit | page | filter |
+| ---   | ---  | ---    | 
+|  10   |   1  |  {}    |
+
+---
 
 **Autenticação:** JWT
 
@@ -1115,16 +1153,20 @@ Listar todos os alunos.
 {
   "success": true,
   "message": "",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439014",
-      "name": "Aluno João",
-      "registration": "2025001",
-      "facialId": "facial_embedding_string_long",
-      "classes": ["I2P4"],
-      "isActive": true
-    }
-  ]
+  "data": {
+          "page": 1,
+          "limit": 10,
+          "totalPages": 1,
+          "data": [
+                {
+                  "_id": "507f1f77bcf86cd799439014",
+                "name": "Aluno João",
+                "registration": "2025001",
+                "classes": ["I2P4"],
+                "isActive": true
+              }
+            ] 
+      }
 }
 ```
 
@@ -1148,7 +1190,6 @@ Obter aluno por ID.
     "_id": "507f1f77bcf86cd799439014",
     "name": "Aluno João",
     "registration": "2025001",
-    "facialId": "facial_embedding_string_long",
     "classes": ["I2P4"],
     "isActive": true,
     "createdAt": "2025-12-15T10:30:00Z",
@@ -1180,29 +1221,6 @@ Listar alunos de uma turma específica.
       "registration": "2025001",
       "classes": ["I2P4"],
       "isActive": true
-    }
-  ]
-}
-```
-
----
-
-### GET /api/students/faces
-
-Carregar todos os dados de identificação facial para a API facial.
-
-**Autenticação:** Header `x-facial-api-key`
-
-**Resposta (200 OK):**
-```json
-{
-  "success": true,
-  "message": "",
-  "data": [
-    {
-      "_id": "507f1f77bcf86cd799439014",
-      "name": "Aluno João",
-      "facialId": "facial_embedding_string_long"
     }
   ]
 }
@@ -1261,12 +1279,15 @@ Atualizar identificação facial do aluno.
 **Request Body:**
 ```json
 {
-  "facialId": "facial_embedding_string_novo"
+  "facialEmbedding": {
+    "embedding": "Embedding facial encriptado via AES-256-gcm",
+    "nonce": "nonce do facial" 
+  }
 }
 ```
 
 **Validação:**
-- `facialId`: string, 128-1000 caracteres (obrigatório)
+- `facialEmbedding`: objeto, contendo embedding e nonce. (pode ser nulo, devido à LGPD)
 
 **Resposta (200 OK):**
 ```json
@@ -1277,7 +1298,6 @@ Atualizar identificação facial do aluno.
     "_id": "507f1f77bcf86cd799439014",
     "name": "Aluno João",
     "registration": "2025001",
-    "facialId": "facial_embedding_string_novo",
     "classes": ["I2P4"],
     "isActive": true,
     "updatedAt": "2025-12-15T11:00:00Z"
@@ -2481,7 +2501,6 @@ POST /api/auth/login
 - ObjectId: Identificador único no MongoDB, formato hexadecimal de 24 caracteres
 - Timestamps: Incluídos em todos os documentos (`createdAt`, `updatedAt`)
 - Soft Delete: Alguns recursos usam `isActive` ao invés de deletar
-- Paginação: Não implementada ainda (em desenvolvimento)
 - Sorting: Não implementado ainda (em desenvolvimento)
 
 ---
