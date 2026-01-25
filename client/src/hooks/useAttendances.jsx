@@ -39,14 +39,12 @@ export default function useAttendances() {
       const formData = new FormData();
       formData.append("image", imageFile); // OBRIGATÓRIO
       formData.append("timestamp", Date.now().toString()); // OPCIONAL
-      console.log("Totem API Key:", totemApiKey);
 
       const response = await attendancesApi.createFacial(formData, {"x-totem-api-key": totemApiKey});
-      console.log("Resposta do createFacial:", response);
       const { success, data, message } = response;
       const student = data?.student;
       if (success) {
-        return { success: true, data };
+        return { success: true, data, message };
       }
       
       setError(message);
