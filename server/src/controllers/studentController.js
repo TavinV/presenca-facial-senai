@@ -27,9 +27,9 @@ class StudentController {
         return ApiResponse.OK(res, "", student);
     });
 
-    getByClassCode = controllerWrapper(async (req, res) => {
-        const { classCode } = req.params;
-        const students = await StudentService.getByClassCode(classCode);
+    getByClassId = controllerWrapper(async (req, res) => {
+        const { id } = req.params;
+        const students = await StudentService.getByClassId(id);
         return ApiResponse.OK(res, "", students);
     });
 

@@ -13,7 +13,7 @@ router.post("/:id/classes/:classCode", authenticateJWT(), studentController.addC
 router.get("/", authenticateJWT(), studentController.getAll);
 router.get("/faces", facialApiAuth, studentController.loadAllForFacialAPI);
 router.get("/:id", authenticateJWT(), studentController.getById);
-router.get("/class/:classCode", authenticateJWT(), studentController.getByClassCode);
+router.get("/class/:id", authenticateJWT(), studentController.getByClassId);
 
 router.patch("/:id", authenticateJWT(), validateRequest(studentSchemas.update),studentController.update);
 router.patch("/:id/face", authenticateJWT(), validateRequest(studentSchemas.updateFacial),studentController.updateFace);

@@ -115,7 +115,7 @@ const classController = {
         const classData = await ClassService.getById(id);
 
         // Usa o code corretamente
-        const students = await StudentService.getByClassCode(classData.code);
+        const students = await StudentService.getByClassId(classData._id);
 
         return ApiResponse.OK(res, "", students);
     }),

@@ -150,7 +150,7 @@ const attendanceController = {
 
         const session = await ClassSessionService.getById(classSessionId);
         if (!session)
-            return ApiResponse.NOT_FOUND(res, "Sessão não encontrada.");
+            return ApiResponse.NOTFOUND(res, "Sessão não encontrada.");
 
         // Se não for coordenador, valida vínculo do professor
         if (req.user.role !== "coordenador") {

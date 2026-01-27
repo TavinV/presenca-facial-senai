@@ -94,9 +94,9 @@ class AttendanceService extends BaseService {
 
         const student = await Student.findById(studentId);
         if (!student) throw new NotFoundError("Aluno não encontrado.");
-
-        // valida vínculo com a turma
-        if (!student.classes.includes(session.class.toString())) {
+        
+        const classData = await ClassService.getById(session.class);
+        if (!student.classes.includes(classData.code.toString().toUpperCase())) {
             throw new ConflictError("Aluno não pertence à turma desta sessão.");
         }
 

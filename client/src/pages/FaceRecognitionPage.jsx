@@ -59,10 +59,6 @@ export default function FacialAttendancePage() {
       const result = await createFacial(file, savedKey);
       if (result.success) {
         showToast(`Presença confirmada para ${result.data.student.name}!`, "success");
-        setTimeout(() => {
-          setShowCamera(false);
-          setIsLogoAtTop(false);
-        }, 1500);
       } else {
         showToast(result.message || "Falha no reconhecimento", "error");
       }
@@ -166,7 +162,7 @@ export default function FacialAttendancePage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSecretClick}
-                className="mt-4 mx-auto flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="mt-8 mx-auto flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <motion.div
                   animate={savedKey ? { rotate: 360 } : {}}

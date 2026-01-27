@@ -173,7 +173,7 @@ class ClassService extends BaseService {
             if (!classData)
                 throw new NotFoundError("Turma não encontrada.");
 
-            return classData;
+            return classData.teachers;
         } catch (err) {
             if (err.name === "CastError")
                 throw new ValidationError("ID inválido");

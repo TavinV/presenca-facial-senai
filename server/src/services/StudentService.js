@@ -30,12 +30,13 @@ class StudentService extends BaseService {
     }
 
     /**
-     * Buscar alunos por código da classe
+     * Buscar alunos por ID da classe
      */
-    async getByClassCode(id) {
+    async getByClassId(id) {
         if (!id) throw new ValidationError("O ID da turma é obrigatório.");
-
-        const foundClass = await Class.findOne({ code: id });
+        console.log("Buscando alunos da turma com ID:", id);
+        const foundClass = await Class.findOne({ _id: id });
+        console.log("Turma encontrada:", foundClass);
         if (!foundClass) throw new NotFoundError("Turma não encontrada.");
 
         const classCode = foundClass.code;

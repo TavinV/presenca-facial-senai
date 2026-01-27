@@ -25,6 +25,16 @@ class ClassSessionService extends BaseService {
             throw new NotFoundError("Turma não encontrada.");
         }
 
+        const classSessionExists = await this.model.findOne({
+            class: classId,
+            date,
+            room,
+        });
+
+        if (classSessionExists) {
+            throw new ValidationError("Já existe uma aula para esta turma, data e sala.");
+        }
+
         const session = await super.create({
             class: classId,
             name,
@@ -44,7 +54,7 @@ class ClassSessionService extends BaseService {
     async getById(id) {
         const session = await this.model
             .findById(id)
-            .populate("classId", "code course shift year")
+            .populate("class", "code course shift year")
             .populate("teacher", "name email")
             .populate("room", "name location");
 
