@@ -15,7 +15,7 @@ class ClassSessionService extends BaseService {
      * - Usa teacherId vindo do JWT
      * - Sessão nasce aberta
      */
-    async create({ classId, name, date, teacherId, room }) {
+    async create({ classId, name, teacherId, room }) {
         if (!classId) {
             throw new ValidationError("O ID da turma é obrigatório.");
         }
@@ -25,11 +25,15 @@ class ClassSessionService extends BaseService {
             throw new NotFoundError("Turma não encontrada.");
         }
 
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+
         const classSessionExists = await this.model.findOne({
             class: classId,
-            date,
             room,
+            date,
         });
+
 
         if (classSessionExists) {
             throw new ValidationError("Já existe uma aula para esta turma, data e sala.");
