@@ -26,12 +26,7 @@ export const classSessionSchemas = {
                 "string.min": "O nome deve ter no mínimo {#limit} caracteres.",
                 "string.max": "O nome deve ter no máximo {#limit} caracteres.",
                 "any.required": "Você deve informar o nome da sessão."
-            }),
-
-        date: Joi.date().required().messages({
-            "date.base": "A data deve ser válida.",
-            "any.required": "Você deve informar a data da sessão."
-        })
+            })
     }),
 
     // Atualizar sessão

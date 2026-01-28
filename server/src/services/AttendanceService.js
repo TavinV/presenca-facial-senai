@@ -145,8 +145,11 @@ class AttendanceService extends BaseService {
         const session = await ClassSession.findById(sessionId);
         if (!session) throw new NotFoundError("Sessão não encontrada.");
 
+        const classData = await ClassService.getById(session.class);
+        if (!classData) throw new NotFoundError("Turma não encontrada.");
+
         const students = await Student.find({
-            classes: session.class,
+            classes: classData.code.toString().toUpperCase(),
         });
 
         const attendances = await Attendance.find({

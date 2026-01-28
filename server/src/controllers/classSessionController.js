@@ -10,7 +10,6 @@ const classSessionController = {
     create: controllerWrapper(async (req, res) => {
         const teacherId = req.user.id;
         const data = { ...req.body, teacherId };
-        console.log(req.body)
         const session = await ClassSessionService.create(data);
         return ApiResponse.CREATED(res, "Sessão criada com sucesso.", session);
     }),
