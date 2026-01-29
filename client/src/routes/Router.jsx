@@ -212,7 +212,7 @@ function AppRouter() {
           element={<FaceRecognitionPage />}
         ></Route>
         <Route
-          path={ROUTES.PRIVATE.ATTENDANCE.CLASS_SESSION_ATTENDANCES}
+          path={ROUTES.PRIVATE.ATTENDANCE.CLASS_SESSION_ATTENDANCES} 
           element={
             <ProtectedRoute>
               <AttendanceViewPage />
