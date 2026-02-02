@@ -32,7 +32,6 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
         { path: ROUTES.PRIVATE.CLASSES.LIST, label: 'Minhas Turmas', icon: <FiBook className="text-xl" />, require: 'both' },
         { path: ROUTES.PRIVATE.STUDENTS.LIST, label: 'Alunos', icon: <FiUsers className="text-xl" />, require: 'both' },
         { path: ROUTES.PRIVATE.SESSIONS.LIST, label: 'Aulas', icon: <FiCalendar className="text-xl" />, require: 'both' },
-        { path: ROUTES.PRIVATE.REPORTS.MAIN, label: 'Relatórios', icon: <FiFileText className="text-xl" />, require: 'both' },
     ];
 
     // Links apenas para coordenadores

@@ -62,6 +62,7 @@ export const                ROUTES = {
             CLASS: '/reports/class/:id',
             CLASS_SESSION: '/reports/class-session/:id',
             STUDENT: '/reports/student/:id',
+            SUBJECT: '/reports/:classid/:subjectCode',
             DATE_RANGE: '/reports/date-range',
         },
         PROFILE: '/profile',

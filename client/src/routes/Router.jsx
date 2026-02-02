@@ -6,7 +6,6 @@ import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 import FaceRecognitionPage from "../pages/FaceRecognitionPage.jsx";
 import ClassesSessionPage from "../pages/ClassesSessionPage.jsx";
 import AttendanceViewPage from "../pages/AttendanceViewPage.jsx";
-import AttendanceReport from "../pages/AttendanceReport.jsx";
 import AttendancePage from "../pages/AttendancePage.jsx";
 import ClassViewPage from "../pages/ClassViewPage.jsx";
 import DashboardPage from "../pages/DashboardPage.jsx";
@@ -21,6 +20,7 @@ import LoginPage from "../pages/LoginPage.jsx";
 import AccessRequestPage from "../pages/AccessRequestPage.jsx";
 import AccessRequestsAdminPage from "../pages/AccessRequestsAdminPage.jsx";
 import EditPage from "../pages/EditPage.jsx";
+import ClassSubjectReportPage from "../pages/ClassSubjectReportPage.jsx";
 import ClassAttendancePage from "../pages/ClassAttendancePage.jsx";
 
 function AppRouter() {
@@ -242,10 +242,10 @@ function AppRouter() {
           }
         ></Route>
         <Route
-          path={ROUTES.PRIVATE.REPORTS.MAIN}
+          path={ROUTES.PRIVATE.REPORTS.SUBJECT}
           element={
             <ProtectedRoute>
-              <AttendanceReport />
+              <ClassSubjectReportPage />
             </ProtectedRoute>
           }
         ></Route>

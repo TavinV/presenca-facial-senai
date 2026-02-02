@@ -15,7 +15,7 @@ export default function AccessRequestPage() {
 
   return (
     <Layout>
-      <div className="max-w-lg mx-auto p-6">
+      <div className="mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">Solicitar Acesso</h1>
         {success ? (
           <div className="p-4 bg-green-50 border border-green-200 rounded">

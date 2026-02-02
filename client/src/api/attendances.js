@@ -30,6 +30,17 @@ import api from '../services/api';
     // Obter presença por id
     getById: (id) => api.get(`/attendances/${id}`),
 
+     getTableByClassAndSubject: (classId, subjectCode) =>
+         api.get(
+             `/attendances/class/${classId}/subject/${subjectCode}/table`
+         ),
+
+     // Presenças de um aluno por turma e disciplina
+     getByStudentClassAndSubject: (studentId, classId, subjectCode) =>
+         api.get(
+             `/attendances/student/${studentId}/class/${classId}/subject/${subjectCode}`
+         ),
+
 }
 
 export default attendancesApi;

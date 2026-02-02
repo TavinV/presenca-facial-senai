@@ -45,6 +45,26 @@ export default function useClasses() {
     }
   }, []);
 
+  const getById = useCallback(async (id) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await classesApi.getById(id);
+      if (response.success) {
+        return { success: true, data: response.data };
+      } else {
+        setError(response.message || "Erro ao carregar turma");
+        return { success: false, message: response.message || "Erro ao carregar turma" };
+      }
+    } catch (err) {
+      const message = err.message || "Erro ao carregar turma";
+      setError(message);
+      return { success: false, message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Criar nova turma
   const createClass = useCallback(async (classData) => {
     try {
@@ -269,6 +289,10 @@ export default function useClasses() {
     }
   }, []);
 
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     // Estado
     classes,
@@ -278,6 +302,7 @@ export default function useClasses() {
 
     // Ações
     loadClasses,
+    getById,
     loadMyClasses,
     createClass,
     addTeacher,
@@ -285,9 +310,7 @@ export default function useClasses() {
     deleteClass,
     updateClass,
     getStudents,
-
-    // Utilitários
-    clearError: () => setError(null),
+    clearError,
     removeTeacher,
     removeRoom,
   };

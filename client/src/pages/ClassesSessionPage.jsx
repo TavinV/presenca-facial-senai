@@ -434,7 +434,7 @@ export default function ClassesSession() {
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <h3 className="font-bold text-gray-800 text-lg mb-2">
-                                {s.name || "Sessão sem título"}
+                                {`${s.name} - ${s.subjectCode} ` || "Sessão sem título"}
                               </h3>
                               <div className="flex items-center">
                                 <span

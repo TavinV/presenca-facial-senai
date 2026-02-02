@@ -71,11 +71,9 @@ export default function RoomsPage() {
       cancelText: "Cancelar",
       onConfirm: async () => {
         const res = await deleteRoom(id);
-        if (res?.success) {
-          setFilteredRooms((prev) => prev.filter((r) => (r._id || r.id) !== id));
-        } else {
-          showToast(res?.message || "Erro ao excluir sala", "error");
-        }
+        console.log(res);
+        setFilteredRooms((prev) => prev.filter((r) => (r._id || r.id) !== id));
+
       },
     });
   }
@@ -386,6 +384,19 @@ export default function RoomsPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+              isOpen={modalConfig.isOpen}
+              onClose={hideModal}
+              title={modalConfig.title}
+              message={modalConfig.message}
+              type={modalConfig.type}
+              confirmText={modalConfig.confirmText}
+              cancelText={modalConfig.cancelText}
+              onConfirm={handleConfirm}
+              showCancel={modalConfig.showCancel}
+              showConfirm={modalConfig.showConfirm}
+            />
     </Layout>
   );
 }

@@ -6,6 +6,7 @@ import {
     FiDownload,
     FiUsers
 } from "react-icons/fi";
+import { FaChartBar } from "react-icons/fa";
 import Layout from "../components/layout/Layout";
 import Toast from "../components/ui/Toast";
 import Modal from "../components/ui/Modal"; // Importar o Modal
@@ -321,6 +322,13 @@ export default function ClassAttendancePage() {
         });
     };
 
+    const redirectToSubjectReport = () => {
+        if (!sessionInfo) return;
+        const classId = sessionInfo.class?._id || sessionInfo.class?.id;
+        const subjectCode = sessionInfo.subjectCode;
+        window.location.href = `/reports/${classId}/${subjectCode}`;
+    };
+
     // Exportar relatório
     const exportReport = () => {
         if (!reportData) return;
@@ -448,6 +456,10 @@ export default function ClassAttendancePage() {
                             </p>
                         </div>
                         <div className="flex items-center space-x-3">
+                            <button onClick={redirectToSubjectReport} className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <FaChartBar />
+                                <span>Relatório da Disciplina</span>
+                            </button>
                             <button
                                 onClick={exportReport}
                                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

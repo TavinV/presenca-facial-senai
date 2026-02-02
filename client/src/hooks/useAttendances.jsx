@@ -179,6 +179,71 @@ export default function useAttendances() {
       setLoading(false);
     }
   }, []);
+
+  // TABELA de presenças por turma + disciplina
+  const getTableByClassAndSubject = useCallback(
+    async (classId, subjectCode) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response =
+          await attendancesApi.getTableByClassAndSubject(
+            classId,
+            subjectCode
+          );
+
+        if (response.success) {
+          return { success: true, data: response.data };
+        }
+
+        setError(response.message);
+        return { success: false, message: response.message };
+      } catch (err) {
+        const message =
+          err.message || "Erro ao carregar tabela de presenças";
+        setError(message);
+        return { success: false, message };
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  // Presenças de um aluno por turma + disciplina
+  const getByStudentClassAndSubject = useCallback(
+    async (studentId, classId, subjectCode) => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response =
+          await attendancesApi.getByStudentClassAndSubject(
+            studentId,
+            classId,
+            subjectCode
+          );
+
+        if (response.success) {
+          return { success: true, data: response.data };
+        }
+
+        setError(response.message);
+        return { success: false, message: response.message };
+      } catch (err) {
+        const message =
+          err.message || "Erro ao buscar presenças do aluno";
+        setError(message);
+        return { success: false, message };
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+
   return {
     attendances,
     loading,
@@ -189,6 +254,8 @@ export default function useAttendances() {
     getBySession,
     getById,
     getFullReportBySession,
+    getTableByClassAndSubject,
+    getByStudentClassAndSubject,
     update,
   };
 }

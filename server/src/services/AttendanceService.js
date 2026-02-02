@@ -281,13 +281,15 @@ class AttendanceService extends BaseService {
                 "classId, studentId e subjectCode são obrigatórios."
             );
         }
-
-        // total de aulas dadas da matéria
-        const totalSessions = await ClassSession.countDocuments({
+        //  sessões da matéria
+        const sessions = await ClassSession.find({
             class: classId,
             subjectCode,
             status: "closed"
-        });
+        }).select("_id");
+
+        const sessionIds = sessions.map(s => s._id);
+        const totalSessions = sessions.length;
 
         if (totalSessions === 0) {
             return {
@@ -298,23 +300,39 @@ class AttendanceService extends BaseService {
             };
         }
 
-        // presenças do aluno
+        if (sessionIds.length === 0) {
+            return {
+                totalClasses: 0,
+                presences: 0,
+                absences: 0,
+                frequency: 0
+            };
+        }
+
+        // contar presenças APENAS dessas sessões
         const presences = await Attendance.countDocuments({
             class: classId,
             student: studentId,
-            status: { $in: ["presente", "atrasado"] }
-        }).populate({
-            path: "session",
-            match: { subjectCode }
+            status: { $in: ["presente", "atrasado"] },
+            session: { $in: sessionIds }
         });
 
-        const absences = totalSessions - presences;
 
+        const absences = totalSessions - presences;
+        
         const frequency = Number(
             ((presences / totalSessions) * 100).toFixed(2)
         );
 
+        const student = await Student.findById(studentId, "name registration");
+
         return {
+            student: {
+                _id: studentId,
+                name: student.name,
+                registration: student.registration
+            },
+            subject: subjectCode,
             totalClasses: totalSessions,
             presences,
             absences,
@@ -354,15 +372,14 @@ class AttendanceService extends BaseService {
         const students = await Student.find({
             classes: { $exists: true }
         }).where("classes").equals(
-            (await Class.findById(classId)).code
+            (await ClassService.getById(classId)).code
         );
 
         // 3️⃣ Busca todas as presenças da matéria
         const attendances = await this.model.find({
             class: classId,
-            session: { $in: sessionIds }
+            session: { $in: sessionIds, $ne: null },
         }).populate("student", "name registration");
-
         // 4️⃣ Agrupa presença por aluno
         const attendanceMap = {};
 

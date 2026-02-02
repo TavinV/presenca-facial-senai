@@ -59,20 +59,22 @@ export function useRooms() {
       setLoading(true);
       setError(null);
       const response = await roomsApi.delete(id);
-      if (response.success) {
-        // Remove a sala da lista local
-        setRooms((prevRooms) =>
-          prevRooms.filter((room) => !(room.id === id || room._id === id))
-        );
-        return { success: true };
-      } else {
+      
+      if (response.success === false) {
         setError(response.message || "Erro ao deletar sala");
         return {
           success: false,
           message: response.message || "Erro ao deletar sala",
         };
+      } else {
+        // Remove a sala da lista local
+        setRooms((prevRooms) =>
+          prevRooms.filter((room) => !(room.id === id || room._id === id))
+      );
+      return { success: true };
       }
     } catch (err) {
+      console.log(err)
       setError(err.message || "Erro ao deletar sala");
       return { success: false, message: err.message || "Erro ao deletar sala" };
     } finally {
