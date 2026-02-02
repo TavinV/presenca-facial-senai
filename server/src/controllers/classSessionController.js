@@ -9,7 +9,10 @@ const classSessionController = {
      */
     create: controllerWrapper(async (req, res) => {
         let teacherId;
+        let byCoordinator = false;
+
         if (req.user.role !== 'professor') {
+            byCoordinator = true;
             if (!req.body.teacher) {
                 return ApiResponse.BADREQUEST(res, "O ID do professor é obrigatório.");
             } else {
@@ -19,7 +22,7 @@ const classSessionController = {
             teacherId = req.user.id;
         }
 
-        let data = { ...req.body };
+        let data = { ...req.body, byCoordinator };
         if (!data.teacherId) {
             data.teacherId = teacherId;
         }

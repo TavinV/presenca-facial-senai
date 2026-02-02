@@ -322,7 +322,7 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
                     {subjects.map((s, idx) => (
                       <div
                         key={`${s.code}-${idx}`}
-                        className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2"
+                        className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 w-full"
                       >
                         <div className="text-left mr-3">
                           <div className="font-medium">{s.code}</div>
