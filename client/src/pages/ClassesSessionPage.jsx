@@ -179,41 +179,20 @@ export default function ClassesSession() {
                 </h2>
                 <span className="bg-gray-100 text-gray-800 text-sm font-semibold px-3 py-1 rounded-full">
                   {
-                    (user?.role === "professor"
-                      ? classes.filter((cls) =>
-                          (cls.teachers || []).some(
-                            (t) => (t._id || t.id) === user.id || t === user.id,
-                          ),
-                        )
-                      : classes
-                    ).length
+                      classes.length
                   }{" "}
-                  turmas
+                  turma(s)
                 </span>
               </div>
 
-              {(user?.role === "professor"
-                ? classes.filter((cls) =>
-                    (cls.teachers || []).some(
-                      (t) => (t._id || t.id) === user.id || t === user.id,
-                    ),
-                  )
-                : classes
-              ).length === 0 ? (
+              {classes.length === 0 ? (
                 <div className="bg-white rounded-xl p-8 text-center border border-gray-200">
                   <FaUsers className="text-gray-300 text-4xl mx-auto mb-4" />
                   <p className="text-gray-500">Nenhuma turma cadastrada</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {(user?.role === "professor"
-                    ? classes.filter((cls) =>
-                        (cls.teachers || []).some(
-                          (t) => (t._id || t.id) === user.id || t === user.id,
-                        ),
-                      )
-                    : classes
-                  ).map((cls) => (
+                  {classes.map((cls) => (
                     <Link
                       key={cls._id}
                       to={`/class-sessions/class/${cls._id}`}

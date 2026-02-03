@@ -66,15 +66,16 @@ export default function ClassViewPage() {
     <Layout>
       <div className="min-h-screen bg-gray-50 p-4 md:p-6">
         {/* Cabeçalho Simples */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Alunos da Turma {classDetails ? classDetails.course : ""}
-          </h1>
-          <div className="text-gray-600">
+        {classDetails && (
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Alunos da Turma {classDetails.course}
+            </h1>
+            <div className="text-gray-600">
             <span className="font-medium">Código:</span> {classDetails.code || "—"}
           </div>
         </div>
-
+        )}
         {/* Lista de Alunos */}
         {students.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">

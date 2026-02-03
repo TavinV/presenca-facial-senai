@@ -384,7 +384,7 @@ export default function ClassSessionForm({
                       key={selectedClass._id || selectedClass.id}
                       value={selectedClass._id || selectedClass.id}
                     >
-                      {selectedClass.code} - {selectedClass.name || "Sem nome"}
+                      {selectedClass.code} - {selectedClass.course || "Sem nome"}
                     </option>
                   )}
                 {classes.map((cls) => (

@@ -67,7 +67,7 @@ export default function Header({ onMobileMenuClick }) {
           <Logo framed={true} color="red" text={false} />
           <div>
             <h1 className="text-lg md:text-xl font-semibold text-gray-800">
-              Presença Facial SENAI
+              Presença Facial Senai
             </h1>
             <p className="text-xs md:text-sm text-gray-500">
               Sistema de Controle de Presença por Reconhecimento Facial

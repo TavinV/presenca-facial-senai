@@ -107,7 +107,7 @@ export default function AccessRequestForm({ onSubmit }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
               {/* Coluna Esquerda */}
-              <div className="space-y-8">
+              <div className="space-y-8 flex flex-col justify-between">
                 {/* Nome */}
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                   <label className="block">
@@ -163,7 +163,7 @@ export default function AccessRequestForm({ onSubmit }) {
               </div>
 
               {/* Coluna Direita */}
-              <div className="space-y-8">
+              <div className="space-y-8 flex flex-col justify-between">
                 {/* E-mail */}
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-sm">
                   <label className="block">

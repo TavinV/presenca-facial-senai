@@ -228,14 +228,14 @@ export default function ClassesPage() {
 
                     {/* Rodapé do card */}
                     <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-auto">
-                      <div className="flex justify-end items-center">
+                      <div className="flex justify-between items-center">
                         <button
                           onClick={() =>
                             navigate("/classes/:id/students".replace(":id", id))
                           }
-                          className="text-gray-600 hover:text-black font-medium text-sm px-4 py-2 hover:bg-red-50 rounded-md transition-colors duration-200"
+                          className="text-gray-600 hover:text-black text-center font-medium text-sm px-4 py-2 hover:bg-red-50 rounded-md transition-colors duration-200"
                         >
-                          Gerenciar
+                          Alunos
                         </button>
                         <Button
                           onClick={() => navigate(`/classes/${id}/edit`)}

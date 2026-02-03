@@ -40,7 +40,9 @@ export default function StudentForm({
     updateFacialId,
   } = useStudents();
 
-  const { classes: availableClasses, loadClasses } = useClasses();
+  const { classes: availableClasses, loadMyClasses } = useClasses();
+
+  const [facialEmbedding, setFacialEmbedding] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -61,8 +63,8 @@ export default function StudentForm({
   /* ───────────────── effects ───────────────── */
 
   useEffect(() => {
-    loadClasses();
-  }, [loadClasses]);
+    loadMyClasses();
+  }, [loadMyClasses]);
 
   useEffect(() => {
     let mounted = true;
@@ -72,12 +74,11 @@ export default function StudentForm({
         const res = await getStudent(routeId);
         if (res.success && mounted) {
           const d = res.data;
-
+          console.log("Loaded student data:", d);
           setForm({
             name: d.name || "",
             registration: d.registration || "",
             classes: d.classes || [],
-            facialEmbedding: d.facialEmbedding || null,
             isActive: d.isActive ?? true,
           });
 
@@ -128,8 +129,7 @@ export default function StudentForm({
           facialEmbedding,
         }));
       } else {
-        const id = routeId;
-        await updateFacialId(id, { facialEmbedding });
+        setFacialEmbedding(facialEmbedding);
       }
 
       setFaceInfo({
@@ -178,6 +178,8 @@ export default function StudentForm({
       if (mode === "create") {
         await createStudent(payload);
       } else {
+        const id = routeId;
+        await updateFacialId(id, facialEmbedding.embedding, facialEmbedding.nonce);
         await updateStudent(routeId, payload);
       }
 

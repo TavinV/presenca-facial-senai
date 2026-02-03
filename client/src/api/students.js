@@ -21,7 +21,7 @@ export const studentsApi = {
     delete: (id) => api.delete(`/students/${id}`),
 
     // PATCH - Atualizar facialId
-    updateFacialId: (id, facialId) => api.patch(`/students/${id}/face`, { facialId }),
+    updateFacialId: (id, facialEmbedding, nonce) => api.patch(`/students/${id}/face`, { embedding: facialEmbedding, nonce}),
 
     // Processar imagem facial
     encodeFace: async (imageFile) => {

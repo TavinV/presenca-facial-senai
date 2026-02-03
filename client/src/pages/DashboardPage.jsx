@@ -81,6 +81,7 @@ export default function DashboardPage() {
                 prepareRecentSessions();
 
             } catch (error) {
+                console.error("Erro ao carregar dados do dashboard:", error);
                 showToast('Erro ao carregar dados do dashboard', 'error');
             } finally {
                 setLoading(false);

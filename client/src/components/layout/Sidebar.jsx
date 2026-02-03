@@ -138,10 +138,13 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
           <div className="p-4 border-b border-red-500 flex items-center justify-between">
             {!isCollapsed ? (
               <div className="flex items-center justify-center">
+                {/* <OVLogo /> */}
+                {/* <span>Otávio Vinícius</span> */}
                 <img src="/senai_type.png" className="w-[50%]" />
               </div>
             ) : (
               <div className="mx-auto flex items-center justify-center">
+                {/* <OVLogo /> */}
                 <img src="/senai_s.png" className="w-[80%]" />
               </div>
             )}

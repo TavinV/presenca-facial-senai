@@ -165,12 +165,11 @@ export function useStudents() {
   }, []);
 
   // Atualizar facialId do aluno (endpoint separado)
-  const updateFacialId = useCallback(async (id, facialId) => {
+  const updateFacialId = useCallback(async (id, facialEmbedding, nonce) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await studentsApi.updateFacialId(id, facialId);
-
+      const response = await studentsApi.updateFacialId(id, facialEmbedding, nonce);
       if (response.success) {
         // optionally update local student
         setStudents((prev) =>
