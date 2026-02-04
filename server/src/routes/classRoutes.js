@@ -130,6 +130,20 @@ router.get(
     classController.getStudents
 );
 
+// Adicionar aluno à turma
+router.post(
+    "/:id/students/:studentId",
+    authenticateJWT(),
+    classController.addStudent
+);
+
+// Remover aluno da turma
+router.delete(
+    "/:id/students/:studentId",
+    authenticateJWT(),
+    classController.removeStudent
+);
+
 /**
  * =========================
  * SUBJECTS (MATÉRIAS)

@@ -1,5 +1,7 @@
 import BaseService from "./BaseService.js";
 import Class from "../models/classModel.js";
+import StudentService from "./StudentService.js";
+
 import {
     ConflictError,
     ValidationError,
@@ -67,6 +69,31 @@ class ClassService extends BaseService {
             .find()
             .populate("teachers", "name role isActive")
             .populate("rooms", "name location isActive");
+    }
+
+    /* ==========================
+       ALUNOS
+    ========================== */
+
+    async addStudent(classId, studentId, byAdmin, teacherId) {
+        const classData = await this.model.findById(classId);
+        if (!classData)
+            throw new NotFoundError("Turma não encontrada.");
+        if (!byAdmin && !classData.teachers.includes(teacherId)) {
+            throw new ValidationError("Você não é professor desta turma.");
+        }
+                
+        StudentService.addClass(studentId, classData.code);
+    }
+
+    async removeStudent(classId, studentId, byAdmin, teacherId) {
+        const classData = await this.model.findById(classId);
+        if (!classData)
+            throw new NotFoundError("Turma não encontrada.");
+        if (!byAdmin && !classData.teachers.includes(teacherId)) {
+            throw new ValidationError("Você não é professor desta turma.");
+        }
+        StudentService.removeClass(studentId, classData.code);
     }
 
     /* ==========================

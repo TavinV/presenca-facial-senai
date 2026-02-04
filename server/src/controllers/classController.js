@@ -44,6 +44,10 @@ const classController = {
     ========================== */
 
     getClassesByTeacher: controllerWrapper(async (req, res) => {
+        if (req.user.role === "coordenador") {
+            const classes = await ClassService.getAll();
+            return ApiResponse.OK(res, "", classes);
+        }
         const teacherId = req.user.id;
         const classes = await ClassService.getClassesByTeacher(teacherId);
         return ApiResponse.OK(res, "", classes);
@@ -120,9 +124,45 @@ const classController = {
         return ApiResponse.OK(res, "", students);
     }),
 
+    addStudent: controllerWrapper(async (req, res) => {
+        const { id, studentId } = req.params;
+        if (!studentId) {
+            return ApiResponse.BADREQUEST(res, "ID do aluno é obrigatório.");
+        }
+        if (!id) {
+            return ApiResponse.BADREQUEST(res, "ID da turma é obrigatório.");
+        }
+
+        const byAdmin = req.user.role === "coordenador";
+        let teacherId = null;
+        if (!byAdmin) {
+            teacherId = req.user.id;
+        }
+        const updatedClass = await ClassService.addStudent(id, studentId, byAdmin, teacherId);
+        return ApiResponse.OK(res, "Aluno adicionado à turma com sucesso.", updatedClass);
+    }),
+    
+    removeStudent: controllerWrapper(async (req, res) => {
+        const { id, studentId } = req.params;
+        if (!studentId) {
+            return ApiResponse.BADREQUEST(res, "ID do aluno é obrigatório.");
+        }
+        if (!id) {
+            return ApiResponse.BADREQUEST(res, "ID da turma é obrigatório.");
+        }
+
+        const byAdmin = req.user.role === "coordenador";
+        let teacherId = null;
+        if (!byAdmin) {
+            teacherId = req.user.id;
+        }
+
+        const updatedClass = await ClassService.removeStudent(id, studentId, byAdmin, teacherId);
+        return ApiResponse.OK(res, "Aluno removido da turma com sucesso.", updatedClass);
+    }),
     /* ==========================
    SUBJECTS (MATÉRIAS)
-========================== */
+    ========================== */
 
     // Lista matérias da turma
     getSubjects: controllerWrapper(async (req, res) => {
