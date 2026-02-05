@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   FaCheck,
   FaTimes,
@@ -193,6 +194,10 @@ export default function StudentForm({
     }
   };
 
+  const { isAuthenticated, isCoordinator, loading } = useAuth();
+
+
+
   /* ───────────────── render ───────────────── */
 
   return (
@@ -342,27 +347,37 @@ export default function StudentForm({
               </div>
 
               {/* Seção: Turmas */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <FaUsers className="text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">Turmas do Aluno</h3>
-                </div>
+              {
+                ((!loading && isAuthenticated && isCoordinator) || mode === "create") ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <FaUsers className="text-red-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800">Turmas do Aluno</h3>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
-                    <span>Selecionar Turmas</span>
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <StudentClassesSelect
-                    value={form.classes}
-                    classes={availableClasses}
-                    onChange={handleClassesChange}
-                  />
-                  <p className="text-xs text-gray-500">Selecione uma ou mais turmas para o aluno</p>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
+                        <span>Selecionar Turmas</span>
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <StudentClassesSelect
+                        value={form.classes}
+                        classes={availableClasses}
+                        onChange={handleClassesChange}
+                      />
+                      <p className="text-xs text-gray-500">Selecione uma ou mais turmas para o aluno</p>
+                    </div>
+                  </div>
+                ): (
+                  <></>
+                )
+              }
+                    
+
+              {/* Seção: Turmas */}
+           
 
               {/* Seção: Status */}
               <div className="space-y-4">

@@ -28,4 +28,10 @@ export const classesApi = {
 
     removeRoom: (classId, roomId) =>
         api.delete(`/classes/${classId}/rooms/${roomId}`),
+
+    addStudent: (classId, studentId) =>
+        api.post(`/classes/${classId}/students/${studentId}`),
+
+    removeStudent: (classId, studentId) =>
+        api.delete(`/classes/${classId}/students/${studentId}`),
 };

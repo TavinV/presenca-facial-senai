@@ -2,37 +2,75 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../components/layout/Layout";
 import useClasses from "../hooks/useClasses.jsx";
+import { ClassHeader } from "../components/students/ClassHeader.jsx";
+import { StudentList } from "../components/students/StudentList.jsx";
+import { AddStudentModal } from "../components/students/AddStudentModal.jsx";
 
 export default function ClassViewPage() {
   const { id: classCode } = useParams();
   const [classDetails, setClassDetails] = useState(null);
-  const { students, loading, error, getStudents, getById } = useClasses();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addingStudent, setAddingStudent] = useState(null);
+  const [removingStudent, setRemovingStudent] = useState(null);
 
-  // Usar useEffect corretamente com todas as dependências
+  const {
+    students: classStudents,
+    loading: classesLoading,
+    error: classesError,
+    getStudents,
+    getById,
+    addStudent,
+    removeStudent
+  } = useClasses();
+
   useEffect(() => {
     if (classCode) {
+      // Carregar alunos da turma
       getStudents(classCode);
+      // Carregar detalhes da turma
+      loadClassDetails();
     }
-  }, [classCode, getStudents]);
+  }, [classCode]);
 
-  const fetchClassDetails = async () => {
-    if (classCode) {
-      const response = await getById(classCode);
-      if (!response.success) {
-        console.error("Erro ao carregar detalhes da turma:", response.message);
-      } else {
-        console.log("Detalhes da turma carregados:", response.data);
-        setClassDetails(response.data);
-      }
+  const loadClassDetails = async () => {
+    const response = await getById(classCode);
+    if (response.success) {
+      setClassDetails(response.data);
     }
   };
 
-  useEffect(() => {
-    fetchClassDetails();
-  }, [classCode]);
+  const handleAddStudent = async (classId, studentId) => {
+    setAddingStudent(studentId);
+    try {
+      const response = await addStudent(classId, studentId);
+      if (response.success) {
+        // Recarregar lista de alunos
+        await getStudents(classCode);
+      }
+      return response;
+    } finally {
+      setAddingStudent(null);
+    }
+  };
 
-  // Componente simples sem estado interno complexo
-  if (loading) {
+  const handleRemoveStudent = async (classId, studentId) => {
+    setRemovingStudent(studentId);
+    try {
+      const response = await removeStudent(classId, studentId);
+      if (response.success) {
+        // Recarregar lista de alunos
+        await getStudents(classCode);
+      }
+      return response;
+    } finally {
+      setRemovingStudent(null);
+    }
+  };
+
+  // Para paginação, ajuste conforme a API
+  const hasMoreStudents = false; // Defina baseado na resposta da API
+
+  if (classesLoading && !classStudents.length && !classDetails) {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -49,13 +87,19 @@ export default function ClassViewPage() {
     );
   }
 
-  if (error) {
+  if (classesError) {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h2 className="text-lg font-semibold text-red-800">Erro</h2>
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700">{classesError}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Tentar novamente
+            </button>
           </div>
         </div>
       </Layout>
@@ -65,57 +109,30 @@ export default function ClassViewPage() {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        {/* Cabeçalho Simples */}
-        {classDetails && (
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
-              Alunos da Turma {classDetails.course}
-            </h1>
-            <div className="text-gray-600">
-            <span className="font-medium">Código:</span> {classDetails.code || "—"}
-          </div>
-        </div>
-        )}
-        {/* Lista de Alunos */}
-        {students.length === 0 ? (
-          <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">Nenhum aluno encontrado para esta turma.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            {/* Cabeçalho da Lista */}
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Alunos</h2>
-                <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
-                  {students.length} alunos
-                </span>
-              </div>
-            </div>
+        <ClassHeader
+          classDetails={classDetails}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          loading={classesLoading && !classDetails}
+        />
 
-            {/* Lista */}
-            <div className="divide-y divide-gray-200">
-              {students.map((student) => (
-                <div
-                  key={student._id}
-                  className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="font-medium text-gray-800">
-                    {student.name}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    Matrícula: {student.registration}
-                  </div>
-                  {student.email && (
-                    <div className="text-sm text-gray-500 mt-1">
-                      {student.email}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <StudentList
+          students={classStudents}
+          onRemoveStudent={handleRemoveStudent}
+          loading={classesLoading && classStudents.length === 0}
+          classCode={classCode}
+          hasMore={hasMoreStudents}
+          onLoadMore={() => getStudents(classCode)}
+          addingStudent={addingStudent}
+          removingStudent={removingStudent}
+        />
+
+        <AddStudentModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAddStudent={handleAddStudent}
+          classCode={classCode}
+          existingStudents={classStudents}
+        />
       </div>
     </Layout>
   );

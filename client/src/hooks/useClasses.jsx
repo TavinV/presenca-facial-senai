@@ -262,6 +262,48 @@ export default function useClasses() {
     }
   }, []);
 
+  const addStudent = useCallback(async (classId, studentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await classesApi.addStudent(classId, studentId);
+      if (response.success) {
+        setStudents((prev) => [...prev, response.data]);
+        return { success: true, data: response.data };
+      } else {
+        setError(response.message);
+        return { success: false, message: response.message };
+      }
+    } catch (err) {
+      const message = err.message || "Erro ao adicionar aluno";
+      setError(message);
+      return { success: false, message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const removeStudent = useCallback(async (classId, studentId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await classesApi.removeStudent(classId, studentId);
+      if (response.success) {
+        setStudents((prev) => prev.filter((s) => s._id !== studentId && s.id !== studentId));
+        return { success: true };
+      } else {       
+        setError(response.message);
+        return { success: false, message: response.message };
+      }
+    } catch (err) {
+      const message = err.message || "Erro ao remover aluno";
+      setError(message);
+      return { success: false, message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Exibir os alunos da turma
   const getStudents = useCallback(async (classCode) => {
     try {
@@ -313,5 +355,7 @@ export default function useClasses() {
     clearError,
     removeTeacher,
     removeRoom,
+    addStudent,
+    removeStudent,
   };
 }
