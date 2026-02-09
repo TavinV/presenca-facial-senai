@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiCamera, FiKey } from "react-icons/fi";
 import { Logo } from "../components/ui/Logo";
@@ -16,6 +16,19 @@ export default function FacialAttendancePage() {
   const [savedKey, setSavedKey] = useState("");
   const [isLogoAtTop, setIsLogoAtTop] = useState(false);
   const [clickCount, setClickCount] = useState(0);
+  const [attendanceResult, setAttendanceResult] = useState(null);
+
+
+  const successAudio = useRef(null);
+  const errorAudio = useRef(null);
+
+  useEffect(() => {
+    successAudio.current = new Audio("/audio/sucesso.wav");
+    errorAudio.current = new Audio("/audio/erro.wav");
+
+    successAudio.current.volume = 1;
+    errorAudio.current.volume = 1;
+  }, []);
 
   const handleSecretClick = () => {
     setClickCount((prev) => {
@@ -58,15 +71,34 @@ export default function FacialAttendancePage() {
     try {
       const result = await createFacial(file, savedKey);
       if (result.success) {
-        showToast(`Presença confirmada para ${result.data.student.name}!`, "success");
+        successAudio.current?.play();
+        setAttendanceResult({
+          type: "success",
+          message: `Presença confirmada para ${result.data.student.name}!`,
+        });
+
+        // showToast(`Presença confirmada para ${result.data.student.name}!`, "success");
       } else {
-        showToast(result.message || "Falha no reconhecimento", "error");
+        errorAudio.current?.play();
+        setAttendanceResult({
+          type: "error",
+          message: result.message
+        })
+        // showToast(result.message || "Falha no reconhecimento", "error");
       }
     } catch (error) {
-      console.log("Erro ao processar captura:", error);
-      showToast("Erro ao processar", "error");
+      errorAudio.current?.play();
+      setAttendanceResult({
+        type: "error",
+        message: result.message,
+      });
+      // console.log("Erro ao processar captura:", error);
+      // showToast("Erro ao processar", "error");
     } finally {
       setLoading(false);
+        setTimeout(() => {
+          setAttendanceResult(null);
+        }, 3500);
     }
   };
 
@@ -200,6 +232,7 @@ export default function FacialAttendancePage() {
                 isActive={showCamera}
                 onCapture={handleCapture}
                 onClose={handleCloseCamera}
+                attendanceResult={attendanceResult}
                 loading={loading}
               />
             </motion.div>

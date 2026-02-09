@@ -23,19 +23,43 @@ export const studentsApi = {
     // PATCH - Atualizar facialId
     updateFacialId: (id, facialEmbedding, nonce) => api.patch(`/students/${id}/face`, { embedding: facialEmbedding, nonce}),
 
-    // Processar imagem facial
-    encodeFace: async (imageFile) => {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-
-        const response = await facialApi.post('/encode', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+    // Processar imagem facial - agora suporta múltiplas imagens
+encodeFace: async (imageFiles) => {
+    const formData = new FormData();
+    
+    console.log('Enviando imagens para encode:', {
+        isArray: Array.isArray(imageFiles),
+        count: Array.isArray(imageFiles) ? imageFiles.length : 1
+    });
+    
+    // Se for array (3 imagens)
+    if (Array.isArray(imageFiles)) {
+        // Validação
+        if (imageFiles.length !== 3) {
+            throw new Error(`Esperado 3 imagens, recebido ${imageFiles.length}`);
+        }
+        
+        // CORREÇÃO: Adiciona cada imagem com o MESMO nome 'images'
+        // Isso criará um array no backend
+        imageFiles.forEach((imageFile, index) => {
+            console.log(`Adicionando imagem ${index + 1} como 'images':`, imageFile);
+            formData.append('images', imageFile); // Nome igual para todas
         });
+        
+    } else {
+        // Backward compatibility: uma única imagem
+        console.log('Enviando imagem única como image:', imageFiles);
+        formData.append('image', imageFiles); // Nome diferente para compatibilidade
+    }
 
-        return response.data;
-    },
+    const response = await facialApi.post('/encode', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+
+    return response.data;
+},
 
     // Validação de imagem
     validateImage: (file) => {

@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
+import AttendanceResultOverlay from "../totem/AttendanceResultOverlay";
 import { motion } from "framer-motion";
 import { FiCamera, FiX } from "react-icons/fi";
 import { FaHourglass } from "react-icons/fa6";
 import OVLogo from "./OVLogo";
 
-export default function CameraSection({ isActive, onCapture, onClose, loading }) {
+export default function CameraSection({
+  isActive,
+  onCapture,
+  onClose,
+  loading,
+  attendanceResult,
+}) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [cameraError, setCameraError] = useState(null);
@@ -39,7 +46,7 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
           if (prevLoops + 1 >= 3) {
             // troca a frase após 3 loops completos
             setPhraseIndex(
-              (prevPhrase) => (prevPhrase + 1) % loadingPhrases.length
+              (prevPhrase) => (prevPhrase + 1) % loadingPhrases.length,
             );
             return 0;
           }
@@ -54,7 +61,6 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
     return () => clearInterval(interval);
   }, []);
 
-
   useEffect(() => {
     let stream = null;
     let countdownInterval = null;
@@ -65,8 +71,8 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
           video: {
             facingMode: "user",
             width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
+            height: { ideal: 720 },
+          },
         });
 
         if (videoRef.current) {
@@ -75,7 +81,7 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
 
         // Iniciar contador
         countdownInterval = setInterval(() => {
-          setCountdown(prev => {
+          setCountdown((prev) => {
             if (prev <= 1) {
               clearInterval(countdownInterval);
               onClose();
@@ -96,7 +102,7 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
 
     return () => {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
       if (countdownInterval) {
         clearInterval(countdownInterval);
@@ -138,20 +144,24 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
             <FiCamera className="w-6 h-6 text-red-600" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Posicione-se dentro do círculo</p>
+            <p className="text-sm text-gray-500">
+              Posicione-se dentro do círculo
+            </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
-          <motion.div
-            className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full"
-          >
-            <span className="text-sm font-medium flex items-center gap-3"> {
-              <>
-                <FaHourglass />
-                {countdown}
-              </>
-            }s</span>
+          <motion.div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full">
+            <span className="text-sm font-medium flex items-center gap-3">
+              {" "}
+              {
+                <>
+                  <FaHourglass />
+                  {countdown}
+                </>
+              }
+              s
+            </span>
           </motion.div>
           <button
             onClick={onClose}
@@ -192,41 +202,47 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
             />
 
             {/* Overlay de guia */}
-            {
-              !loading && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <motion.div
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="w-64 h-64 border-2 border-white/30 rounded-full"
-                  />
-                </div>
-              )
-            }
+            {!loading && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="w-64 h-64 border-2 border-white/30 rounded-full"
+                />
+              </div>
+            )}
 
             {/* Marca d'água */}
-            {
-              loading && (    
-                <div className="absolute bg-black/55 bottom-0 right-0 left-0 w-full h-full pointer-events-none flex justify-center items-center">
-                  <div className="flex-col justify-center items-center flex gap-5">
-                    <img src="/loading-logo.gif" className="w-20" alt="" />
-                      <p className="text-white font-medium text-center">
-                        {loadingPhrases[phraseIndex]}
-                        {".".repeat(dots)}
-                      </p>
-                  </div>
+            {loading && (
+              <div className="absolute bg-black/55 bottom-0 right-0 left-0 w-full h-full pointer-events-none flex justify-center items-center">
+                <div className="flex-col justify-center items-center flex gap-5">
+                  <img src="/loading-logo.gif" className="w-20" alt="" />
+                  <p className="text-white font-medium text-center">
+                    {loadingPhrases[phraseIndex]}
+                    {".".repeat(dots)}
+                  </p>
                 </div>
-              )
-            }
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 0.7, x: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className={`absolute scale-80 pointer-events-none bottom-0 w-full py-1 rounded-lg flex items-center justify-center space-x-2`}
-                    >
-                    <OVLogo className="w-2 h-auto" />
-                    <span className="text-white text-sm font-bold">Otávio Vinícius</span>
-                  </motion.div>
+              </div>
+            )}
+
+            {attendanceResult && (
+              <AttendanceResultOverlay
+                attendanceResult={attendanceResult}
+                onClose={() => console.log("Animação concluída")}
+              />
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 0.7, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className={`absolute scale-80 pointer-events-none bottom-0 w-full py-1 rounded-lg flex items-center justify-center space-x-2`}
+            >
+              <OVLogo className="w-2 h-auto" />
+              <span className="text-white text-sm font-bold">
+                Otávio Vinícius
+              </span>
+            </motion.div>
           </>
         )}
       </div>
@@ -238,10 +254,12 @@ export default function CameraSection({ isActive, onCapture, onClose, loading })
           whileTap={{ scale: 0.95 }}
           onClick={takePhoto}
           disabled={cameraError}
-          className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg ${cameraError ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-red-700'} text-white flex items-center justify-center space-x-3`}
+          className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg ${cameraError ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-red-600 to-red-700"} text-white flex items-center justify-center space-x-3`}
         >
           <FiCamera className="w-6 h-6" />
-          <span>{cameraError ? 'Câmera Indisponível' : 'Registrar Presença'}</span>
+          <span>
+            {cameraError ? "Câmera Indisponível" : "Registrar Presença"}
+          </span>
         </motion.button>
       </div>
 

@@ -138,8 +138,8 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
           <div className="p-4 border-b border-red-500 flex items-center justify-between">
             {!isCollapsed ? (
               <div className="flex items-center justify-center">
-                {/* <OVLogo /> */}
-                {/* <span>Otávio Vinícius</span> */}
+                {/* <OVLogo /> 
+                <span className="ml-2 font-bold">Otávio Vinícius</span> */}
                 <img src="/senai_type.png" className="w-[50%]" />
               </div>
             ) : (
@@ -220,7 +220,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
                 <p className="text-xs text-red-300 text-center mt-2">
                   por Otávio Vinicius
                 </p>
-              )}
+              )} 
             </div>
           </div>
         </aside>
@@ -319,10 +319,10 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
                   variants={menuItemVariants}
                   className="flex flex-col items-center"
                 >
-                  <OVLogo className="w-10 h-10" />
+                  {/* <OVLogo className="w-10 h-10" />
                   <p className="text-xs text-red-300 mt-2">
                     Desenvolvido por Otávio Vinicius & Lucas Gomes
-                  </p>
+                  </p> */}
                 </motion.div>
               </div>
             </motion.aside>

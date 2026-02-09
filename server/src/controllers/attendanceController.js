@@ -50,7 +50,7 @@ const attendanceController = {
 
                 const candidates = await StudentService.loadStudentsFromRoom(room);
                 formData.append('candidates', JSON.stringify(candidates));
-                
+                console.log(candidates)
                 // Chamar API facial
                 const response = await axios.post(
                     `${facialApiUrl}/recognize`,

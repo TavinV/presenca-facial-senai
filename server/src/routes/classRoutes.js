@@ -23,7 +23,7 @@ router.post(
 // Listar todas as turmas
 router.get(
     "/",
-    authenticateJWT("coordenador"),
+    authenticateJWT(),
     classController.getAll
 );
 

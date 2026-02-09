@@ -74,12 +74,14 @@ export default function useAccessRequests() {
       setLoading(true);
       setError(null);
       const response = await accessRequestApi.delete(id);
-      if (response.success) {
+      
+      if (response?.success === false) {
+        setError(response.message);
+        return { success: false, message: response.message };
+      } else {
         setRequests((prev) => prev.filter((r) => r._id !== id && r.id !== id));
         return { success: true };
       }
-      setError(response.message);
-      return { success: false, message: response.message };
     } catch (err) {
       const message = err.message || "Erro ao remover solicitação";
       setError(message);

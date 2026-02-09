@@ -95,14 +95,14 @@ export default function useClasses() {
       setError(null);
       const response = await classesApi.delete(id);
 
-      if (response.success) {
+      if (response?.success === false) {
+        setError(response.message);
+        return { success: false, message: response.message };
+      } else {
         setClasses((prev) =>
           prev.filter((cls) => cls.id !== id && cls._id !== id)
         );
         return { success: true };
-      } else {
-        setError(response.message);
-        return { success: false, message: response.message };
       }
     } catch (err) {
       const message = err.message || "Erro ao deletar turma";

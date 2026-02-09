@@ -8,14 +8,11 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-//icons
-import { IoPeopleSharp } from "react-icons/io5";
-import { FaBuilding } from "react-icons/fa6";
-import { MdPlace } from "react-icons/md";
-import { FaPlus } from "react-icons/fa6";
-import { FaTrash } from "react-icons/fa";
-import { MdEdit } from "react-icons/md";
+// Componente criado
+import ClassCard from "../components/classes/ClassCard";
 
+//icons
+import { FaPlus } from "react-icons/fa6";
 import Button from "../components/ui/Button";
 
 export default function ClassesPage() {
@@ -24,6 +21,7 @@ export default function ClassesPage() {
 
   const [filteredClasses, setFilteredClasses] = useState([]);
   const [message, setMessage] = useState({ text: "", type: "" });
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const showToast = (text, type = "info") => setMessage({ text, type });
   const { modalConfig, showModal, hideModal, handleConfirm } = useModal();
   const navigate = useNavigate();
@@ -52,13 +50,41 @@ export default function ClassesPage() {
       confirmText: "Excluir",
       cancelText: "Cancelar",
       onConfirm: async () => {
+        setDeleteLoading(true);
         const result = await deleteClass(id);
+        setDeleteLoading(false);
         if (!result.success) {
           showToast(result.message || "Erro ao deletar turma", "error");
         }
       },
     });
   };
+
+  const handleViewStudents = (id) => {
+    navigate("/classes/:id/students".replace(":id", id));
+  };
+
+  const handleEditClass = (id) => {
+    navigate(`/classes/${id}/edit`);
+  };
+
+  function handleSearch({ search, filters }) {
+    let result = classes;
+
+    if (search) {
+      result = result.filter(
+        (c) =>
+          c.code.toLowerCase().includes(search.toLowerCase()) ||
+          c.course.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    if (filters.shift) {
+      result = result.filter((c) => c.shift === filters.shift);
+    }
+
+    setFilteredClasses(result);
+  }
 
   if (loading) {
     return (
@@ -83,44 +109,26 @@ export default function ClassesPage() {
     );
   }
 
-  function handleSearch({ search, filters }) {
-    let result = classes;
-
-    if (search) {
-      result = result.filter(
-        (c) =>
-          c.code.toLowerCase().includes(search.toLowerCase()) ||
-          c.course.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (filters.shift) {
-      result = result.filter((c) => c.shift === filters.shift);
-    }
-
-    setFilteredClasses(result);
-  }
-
   return (
     <>
       <Layout>
-        <div className="p-6">
-          <div className="mb-8 flex justify-between items-center">
+        <div className="p-4 sm:p-6">
+          <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Turmas</h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Turmas</h1>
+              <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
                 Gerencie todas as turmas do sistema
               </p>
             </div>
-            <div className="flex gap-5">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <button
-                className="ml-3 bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 flex items-center justify-between py-1 rounded-lg transition-colors duration-200"
+                className="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 flex items-center justify-center py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto"
                 onClick={() => navigate("/classes/new")}
               >
-                Criar Turma
-                <FaPlus size={18} className="flex items-center ml-2" />
+                <span className="whitespace-nowrap">Criar Turma</span>
+                <FaPlus size={18} className="ml-2 flex-shrink-0" />
               </button>
-              <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg">
+              <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg whitespace-nowrap">
                 Total:{" "}
                 <span className="font-bold">
                   {filteredClasses.length} turmas
@@ -128,6 +136,7 @@ export default function ClassesPage() {
               </div>
             </div>
           </div>
+
           <Search
             placeholder="Buscar turma..."
             filters={[
@@ -142,127 +151,29 @@ export default function ClassesPage() {
             ]}
             onChange={handleSearch}
           />
+
           {filteredClasses.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-md p-8 text-center">
-              <div className="text-gray-400 text-6xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            <div className="bg-white rounded-xl shadow-md p-6 sm:p-8 text-center mt-6">
+              <div className="text-gray-400 text-5xl sm:text-6xl mb-4">📚</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
                 Nenhuma turma encontrada
               </h3>
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-sm sm:text-base">
                 Não há turmas cadastradas no sistema ainda.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredClasses.map((turma) => {
-                const id = turma._id || turma.id;
-                return (
-                  <div
-                    key={id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col h-full"
-                  >
-                    {/* Cabeçalho do card */}
-                    <div className="bg-red-500 px-6 py-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h2 className="text-xl font-bold text-white">
-                            {turma.code}
-                          </h2>
-                          <p className="text-blue-100 text-sm mt-1">
-                            {turma.course}
-                          </p>
-                        </div>
-                        <div className="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                          {turma.year}
-                        </div>
-                      </div>
-                      <div className="mt-3">
-                        <span className="inline-block bg-red-600 text-white text-xs font-medium px-3 py-1 rounded-full">
-                          {turma.shift}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Corpo do card */}
-                    <div className="p-6">
-                      {/* Professores */}
-                      <div className="mb-4">
-                        <div className="flex items-center text-gray-700 mb-2">
-                          <IoPeopleSharp size={18} className="text-gray-400" />
-                          <span className="ml-2 font-semibold">
-                            Professores
-                          </span>
-                        </div>
-                        <p className="text-gray-800 ml-7">
-                          {turma.teachers
-                            ?.map((prof) => prof.name)
-                            .join(", ") || "Nenhum professor"}
-                        </p>
-                      </div>
-
-                      {/* Salas */}
-                      <div className="mb-4">
-                        <div className="flex items-center text-gray-700 mb-2">
-                          <FaBuilding size={18} className="text-gray-400" />
-                          <span className="ml-2 font-semibold">Salas</span>
-                        </div>
-                        <p className="text-gray-800 ml-7">
-                          {turma.rooms?.map((sala) => sala.name).join(", ") ||
-                            "Nenhuma sala"}
-                        </p>
-                      </div>
-
-                      {/* Local */}
-                      <div>
-                        <div className="flex items-center text-gray-700 mb-2">
-                          <MdPlace size={20} className="text-gray-400" />
-                          <span className="ml-2 font-semibold">Local</span>
-                        </div>
-                        <p className="text-gray-800 ml-7">
-                          {turma.rooms
-                            ?.map((lugar) => lugar.location)
-                            .join(", ") || "Não informado"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Rodapé do card */}
-                    <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 mt-auto">
-                      <div className="flex justify-between items-center">
-                        <button
-                          onClick={() =>
-                            navigate("/classes/:id/students".replace(":id", id))
-                          }
-                          className="text-gray-600 hover:text-black text-center font-medium text-sm px-4 py-2 hover:bg-red-50 rounded-md transition-colors duration-200"
-                        >
-                          Alunos
-                        </button>
-                        <Button
-                          onClick={() => navigate(`/classes/${id}/edit`)}
-                          className="flex ml-3 bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 py-2 rounded-md transition-colors duration-200"
-                        >
-                          <MdEdit
-                            size={18}
-                            className="flex items-center mr-2"
-                          />
-                          Editar
-                        </Button>
-                        <button
-                          onClick={() => handleDelete(turma._id)}
-                          disable={loading}
-                          className="flex items-center ml-3 bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 py-2 rounded-md transition-colors duration-200"
-                        >
-                          <FaTrash
-                            size={15}
-                            className="flex items-center mr-2"
-                          />
-                          Excluir
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+              {filteredClasses.map((turma) => (
+                <ClassCard
+                  key={turma._id || turma.id}
+                  turma={turma}
+                  onEdit={handleEditClass}
+                  onDelete={handleDelete}
+                  onViewStudents={handleViewStudents}
+                  loading={deleteLoading}
+                />
+              ))}
             </div>
           )}
         </div>

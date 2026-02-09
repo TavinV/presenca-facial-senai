@@ -20,8 +20,8 @@ import { useStudents } from "../../hooks/useStudents";
 import useClasses from "../../hooks/useClasses";
 import { normalizeClasses } from "../../utils/normalizeClasses";
 
-import FaceCapture from "../students/FaceCapture";
 import StudentClassesSelect from "../students/StudentClassesSelect";
+import FacialRecognitionSection from "../students/FacialRecognitionSection";
 
 export default function StudentForm({
   mode: propMode,
@@ -83,7 +83,7 @@ export default function StudentForm({
             isActive: d.isActive ?? true,
           });
 
-          if (d.facialEmbedding?.nonce) {
+          if (d.facialEmbedding?.alg) {
             setFaceInfo({
               status: "processed",
               nonce: d.facialEmbedding.nonce
@@ -111,19 +111,23 @@ export default function StudentForm({
     setForm((p) => ({ ...p, classes: values }));
   };
 
-  const handleFaceCapture = async (blob) => {
+  const handleFaceCapture = async (imageBlobs) => {
     setError(null);
     setFaceProcessing(true);
 
     try {
-      const res = await encodeFace(blob);
+      // imageBlobs agora é um array de 3 blobs
+      console.log('Enviando', imageBlobs.length, 'imagens para processamento');
+
+      const res = await encodeFace(imageBlobs);
       if (!res.success) throw new Error(res.message);
 
       const facialEmbedding = {
         embedding: res.data.embedding,
         nonce: res.data.nonce,
+        image_count: res.data.image_count || 1 // Novo campo opcional
       };
-      
+
       if (mode === "create") {
         setForm((p) => ({
           ...p,
@@ -136,11 +140,14 @@ export default function StudentForm({
       setFaceInfo({
         status: "processed",
         nonce: facialEmbedding.nonce,
+        image_count: facialEmbedding.image_count
       });
 
       setShowFaceCapture(false);
     } catch (err) {
-      setError(err.message || "Erro ao processar rosto");
+      console.error('Erro no processamento facial:', err);
+      setError(err.message || "Erro ao processar rostos");
+      setFaceInfo({ status: "error", message: err.message });
     } finally {
       setFaceProcessing(false);
     }
@@ -419,113 +426,13 @@ export default function StudentForm({
               </div>
 
               {/* Seção: Reconhecimento Facial */}
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <FaCamera className="text-red-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-800">Reconhecimento Facial</h3>
-                    <p className="text-sm text-gray-600">
-                      Captura opcional para presenças automáticas via câmera
-                    </p>
-                  </div>
-                </div>
-
-                {/* Informação sobre facial opcional */}
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-start space-x-3">
-                    <FaInfoCircle className="text-blue-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-blue-800">
-                        <span className="font-medium">O reconhecimento facial é opcional.</span> O aluno pode ser
-                        cadastrado sem ele e depois ter presenças registradas manualmente.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {showFaceCapture ? (
-                  <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
-                    <FaceCapture
-                      onCapture={handleFaceCapture}
-                      disabled={faceProcessing}
-                    />
-                    {faceProcessing && (
-                      <div className="mt-4 text-center">
-                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mb-2"></div>
-                        <p className="text-sm text-gray-600">Processando imagem facial...</p>
-                      </div>
-                    )}
-                    <div className="mt-4 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setShowFaceCapture(false)}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                      >
-                        Cancelar captura
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`p-6 rounded-xl border-2 ${form.facialId ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'} transition-all`}>
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-3 rounded-full ${form.facialId ? 'bg-green-100' : 'bg-gray-100'}`}>
-                          <FaCamera className={`text-lg ${form.facialId ? 'text-green-600' : 'text-gray-500'}`} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {form.facialId ? "Rosto Processado" : "Sem Reconhecimento Facial"}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {form.facialId
-                              ? "O aluno pode ser reconhecido via câmera"
-                              : "O aluno será registrado apenas manualmente"}
-                          </p>
-                          {form.facialId && faceInfo?.nonce && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              ID facial: {faceInfo.nonce.substring(0, 16)}...
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        {form.facialId ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setShowFaceCapture(true)}
-                              className="px-4 py-2 text-green-700 hover:text-green-900 font-medium rounded-lg border border-green-300 hover:border-green-400 bg-white hover:bg-green-50 transition-colors"
-                            >
-                              Recapturar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleRemoveFacial}
-                              className="px-4 py-2 text-red-600 hover:text-red-800 font-medium rounded-lg border border-red-200 hover:border-red-300 bg-white hover:bg-red-50 transition-colors"
-                            >
-                              Remover
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setShowFaceCapture(true)}
-                            className="px-6 py-3 rounded-lg font-medium transition-all bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <FaCamera />
-                              <span>Capturar Rosto</span>
-                            </div>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <FacialRecognitionSection
+                faceInfo={faceInfo}
+                processing={faceProcessing}
+                onCapture={handleFaceCapture}
+                onRemove={handleRemoveFacial}
+                
+              />
 
               {/* Seção: Ações */}
               <div className="pt-8 border-t border-gray-200">

@@ -115,8 +115,8 @@ export default function TotemsPage() {
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Totems</h1>
-          <p className="text-gray-600">Gerencie todos os totems do sistema</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Totens</h1>
+          <p className="text-gray-600">Gerencie todos os totens do sistema</p>
         </div>
 
         <div className="">

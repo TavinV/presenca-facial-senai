@@ -126,12 +126,12 @@ export function useStudents() {
       setError(null);
       const response = await studentsApi.delete(id);
 
-      if (response.success) {
-        setStudents((prev) => prev.filter((student) => student._id !== id));
-        return { success: true };
-      } else {
+      if (response?.success === false) {
         setError(response.message);
         return { success: false, message: response.message };
+      } else {
+        setStudents((prev) => prev.filter((student) => student._id !== id));
+        return { success: true };
       }
     } catch (err) {
       const message = err.message || "Erro ao excluir aluno";
@@ -142,16 +142,25 @@ export function useStudents() {
     }
   }, []);
 
-  // Processar imagem facial
-  const encodeFace = useCallback(async (imageFile) => {
+  // Processar múltiplas imagens faciais
+  const encodeFace = useCallback(async (imageFiles) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await studentsApi.encodeFace(imageFile);
+
+      // Verifica se é array (3 imagens) ou arquivo único (backward compatibility)
+      const isMultiple = Array.isArray(imageFiles);
+
+      if (isMultiple && imageFiles.length !== 3) {
+        throw new Error("É necessário capturar exatamente 3 imagens");
+      }
+
+      const data = await studentsApi.encodeFace(imageFiles);
       return { success: true, data };
     } catch (err) {
-      const message =
-        err.response?.data?.message || "Erro ao processar imagem facial";
+      const message = err.response?.data?.detail ||
+        err.message ||
+        "Erro ao processar imagens faciais";
       setError(message);
       return { success: false, message };
     } finally {

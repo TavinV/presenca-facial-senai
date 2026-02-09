@@ -91,12 +91,12 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       const response = await usersApi.delete(id);
-      if (response.success) {
-        setUsers((prev) => prev.filter((u) => u._id !== id));
-        return { success: true };
-      } else {
+      if (response?.success === false) {
         setError(response.message);
         return { success: false, message: response.message };
+      } else {
+        setUsers((prev) => prev.filter((u) => u._id !== id));
+        return { success: true };
       }
     } catch (err) {
       setError(err.message);
