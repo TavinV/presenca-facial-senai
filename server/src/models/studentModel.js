@@ -7,6 +7,13 @@ const facialEmbeddingSchema = new mongoose.Schema(
             required: true,
             select: false 
         },
+        
+        photos_processed: {
+            type: Number,
+            required: true,
+            default: 3,
+        },
+
         nonce: {
             type: String,
             required: true,

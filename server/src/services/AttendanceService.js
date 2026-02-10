@@ -161,37 +161,44 @@ class AttendanceService extends BaseService {
             { session: session._id }
         ).populate("student", "name registration");
 
-        // PRESENTES (payload enxuto)
-        let presentes = attendances.filter(att => att.status === "presente").map(att => ({
-            nome: att.student.name,
-            matricula: att.student.registration,
+
+        let presentes = attendances
+        .filter(att => att.status === "presente" && att.student)
+        .map(att => ({
+            nome: att.student?.name ?? "[Aluno removido]",
+            matricula: att.student?.registration ?? null,
             horario: att.createdAt,
-            id: att.student._id
+            id: att.student?._id ?? null
         }));
 
         const atrasados = attendances.filter(att => att.status === "atrasado").map(att => ({
-            nome: att.student.name,
-            matricula: att.student.registration,
+            nome: att.student?.name ?? "[Aluno remobido]",
+            matricula: att.student?.registration ?? null,
             horario: att.createdAt,
-            id: att.student._id
+            id: att.student?._id ?? null
         }));
 
 
-        // IDs dos alunos presentes
+        // IDs dos alunos presentes (somente se student existir)
         const presentStudentIds = new Set(
-            attendances.map(att => att.student._id.toString())
+            attendances
+                .filter(att => att.student) 
+                .map(att => att.student._id.toString())
         );
 
         const lateStudentIds = new Set(
-            attendances.filter(att => att.status === "atrasado").map(att => att.student._id.toString())
+            attendances
+                .filter(att => att.status === "atrasado" && att.student)
+                .map(att => att.student._id.toString())
         );
+
 
         // AUSENTES (alunos sem presença)
         const ausentes = students
             .filter(student => !presentStudentIds.has(student._id.toString()) && !lateStudentIds.has(student._id.toString()))
             .map(student => ({
-                nome: student.name,
-                matricula: student.registration,
+                nome: student.name || '[Aluno removido]',
+                matricula: student.registration || null,
                 id: student._id
             }));
 
@@ -329,8 +336,8 @@ class AttendanceService extends BaseService {
         return {
             student: {
                 _id: studentId,
-                name: student.name,
-                registration: student.registration
+                name: student?.name ?? "[Aluno removido]",
+                registration: student?.registration ?? null 
             },
             subject: subjectCode,
             totalClasses: totalSessions,
@@ -340,16 +347,12 @@ class AttendanceService extends BaseService {
         };
     }
 
-    /**
-     * Relatório de frequência da turma por matéria
-     * Retorna formato de tabela
-     */
     async getClassAttendanceTableBySubject({ classId, subjectCode }) {
         if (!classId || !subjectCode) {
             throw new ValidationError("classId e subjectCode são obrigatórios.");
         }
 
-        // 1️⃣ Busca todas as sessões encerradas dessa matéria
+        // 1️⃣ Sessões encerradas da matéria
         const sessions = await ClassSession.find({
             class: classId,
             subjectCode,
@@ -362,34 +365,50 @@ class AttendanceService extends BaseService {
             return {
                 subjectCode,
                 totalAulas: 0,
-                students: []
+                alunos: []
             };
         }
 
         const sessionIds = sessions.map(s => s._id);
 
-        // 2️⃣ Busca todos os alunos da turma
-        const students = await Student.find({
-            classes: { $exists: true }
-        }).where("classes").equals(
-            (await ClassService.getById(classId)).code
-        );
+        // 2️⃣ Código da turma
+        const classData = await ClassService.getById(classId);
 
-        // 3️⃣ Busca todas as presenças da matéria
-        const attendances = await this.model.find({
+        // 3️⃣ Alunos ATUAIS da turma
+        const students = await Student.find({
+            classes: classData.code
+        }).select("name registration");
+
+        // 4️⃣ Presenças da matéria
+        const attendances = await Attendance.find({
             class: classId,
-            session: { $in: sessionIds, $ne: null },
+            session: { $in: sessionIds },
         }).populate("student", "name registration");
-        // 4️⃣ Agrupa presença por aluno
+
+        /**
+         * attendanceMap:
+         * {
+         *   studentId: {
+         *     presente,
+         *     atrasado,
+         *     nome,
+         *     matricula
+         *   }
+         * }
+         */
         const attendanceMap = {};
 
         for (const att of attendances) {
-            const studentId = att.student._id.toString();
+            const studentId = att.student?._id?.toString() ?? att.student?.toString();
+
+            if (!studentId) continue; // segurança extra
 
             if (!attendanceMap[studentId]) {
                 attendanceMap[studentId] = {
                     presente: 0,
                     atrasado: 0,
+                    nome: att.student?.name ?? "[Aluno removido]",
+                    matricula: att.student?.registration ?? null
                 };
             }
 
@@ -402,7 +421,7 @@ class AttendanceService extends BaseService {
             }
         }
 
-        // 5️⃣ Monta a tabela final
+        // 5️⃣ Tabela final (alunos existentes)
         const table = students.map(student => {
             const stats = attendanceMap[student._id.toString()] || {
                 presente: 0,
@@ -424,12 +443,32 @@ class AttendanceService extends BaseService {
             };
         });
 
+        // 6️⃣ Alunos removidos (existem no Attendance mas não no Student)
+        const removedStudents = Object.entries(attendanceMap)
+            .filter(([studentId]) => !students.some(s => s._id.toString() === studentId))
+            .map(([_, stats]) => {
+                const totalCompareceu = stats.presente + stats.atrasado;
+                const faltas = totalAulas - totalCompareceu;
+                const frequencia = Number(
+                    ((totalCompareceu / totalAulas) * 100).toFixed(2)
+                );
+
+                return {
+                    aluno: stats.nome,
+                    matricula: stats.matricula,
+                    faltas,
+                    atrasos: stats.atrasado,
+                    frequencia
+                };
+            });
+
         return {
             subjectCode,
             totalAulas,
-            alunos: table
+            alunos: [...table, ...removedStudents]
         };
     }
+
 
 }
 

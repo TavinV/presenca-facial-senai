@@ -125,7 +125,7 @@ export default function StudentForm({
       const facialEmbedding = {
         embedding: res.data.embedding,
         nonce: res.data.nonce,
-        image_count: res.data.image_count || 1 // Novo campo opcional
+        photos_processed: res.data.photos_processed || 1, // Novo campo opcional
       };
 
       if (mode === "create") {
@@ -140,7 +140,7 @@ export default function StudentForm({
       setFaceInfo({
         status: "processed",
         nonce: facialEmbedding.nonce,
-        image_count: facialEmbedding.image_count
+        photos_processed: facialEmbedding.photos_processed,
       });
 
       setShowFaceCapture(false);

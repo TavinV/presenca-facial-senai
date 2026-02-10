@@ -117,17 +117,23 @@ export default function ClassesPage() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Turmas</h1>
               <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-                Gerencie todas as turmas do sistema
+                {
+                  user.role === "coordenador" ? ("Gerencie todas as turmas do sistema") : ("Veja suas turmas")
+                }
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <button
-                className="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 flex items-center justify-center py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto"
-                onClick={() => navigate("/classes/new")}
-              >
-                <span className="whitespace-nowrap">Criar Turma</span>
-                <FaPlus size={18} className="ml-2 flex-shrink-0" />
-              </button>
+              {
+                user.role === "coordenador" && (
+                <button
+                  className="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 flex items-center justify-center py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                  onClick={() => navigate("/classes/new")}
+                >
+                  <span className="whitespace-nowrap">Criar Turma</span>
+                  <FaPlus size={18} className="ml-2 flex-shrink-0" />
+                </button>    
+                )
+              }
               <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg whitespace-nowrap">
                 Total:{" "}
                 <span className="font-bold">
@@ -172,6 +178,7 @@ export default function ClassesPage() {
                   onDelete={handleDelete}
                   onViewStudents={handleViewStudents}
                   loading={deleteLoading}
+                  coordinator={(user.role === "coordenador")}
                 />
               ))}
             </div>

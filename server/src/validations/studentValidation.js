@@ -21,12 +21,14 @@ const facialEmbeddingSchema = Joi.object({
             "string.base64": "O nonce deve estar em Base64.",
             "any.required": "O nonce é obrigatório.",
         }),
-})
-    // impede envio de campos extras (ex: key, alg, version)
-    .unknown(false)
+
+    photos_processed: Joi.number()
+    .required()
     .messages({
-        "object.unknown": "Campos adicionais não são permitidos no embedding facial.",
-    });
+        "any.required": "A quantidade de fotos processadas é obrigatória",
+    })
+})
+
 
 /**
  * Campos base do aluno
