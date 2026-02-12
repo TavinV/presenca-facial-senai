@@ -28,7 +28,6 @@ export default function ClassSubjectReportPage() {
 
     const [reportData, setReportData] = useState(null);
     const [message, setMessage] = useState({ text: "", type: "" });
-    console.log(classid, subjectCode)
     useEffect(() => {
         if (classid && subjectCode) {
             loadReportData();

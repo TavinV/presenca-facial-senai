@@ -39,7 +39,6 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
         { path: ROUTES.PRIVATE.TEACHERS.LIST, label: 'Professores', icon: <FiUser className="text-xl" />, require: 'coordinator' },
         { path: ROUTES.PRIVATE.ROOMS.LIST, label: 'Salas', icon: <FiMapPin className="text-xl" />, require: 'coordinator' },
         { path: ROUTES.PRIVATE.TOTEMS.LIST, label: 'Totens', icon: <FiMonitor className="text-xl" />, require: 'coordinator' },
-        { path: ROUTES.PRIVATE.PROFILE, label: 'Configurações', icon: <FiSettings className="text-xl" />, require: 'both' },
     ];
 
     // Combinar links baseado no role
@@ -135,7 +134,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
                 `}
         >
           {/* Logo + Toggle */}
-          <div className="p-4 border-b border-red-500 flex items-center justify-between">
+          <NavLink to="/" className="p-4 border-b border-red-500 flex items-center justify-between cursor-pointer">
             {!isCollapsed ? (
               <div className="flex items-center justify-center">
                 {/* <OVLogo /> 
@@ -158,7 +157,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
             >
               {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
             </button>
-          </div>
+          </NavLink>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 overflow-y-auto">

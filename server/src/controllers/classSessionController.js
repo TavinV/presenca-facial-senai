@@ -72,6 +72,20 @@ const classSessionController = {
      * Atualizar dados básicos da sessão
      */
     update: controllerWrapper(async (req, res) => {
+            const forbiddenFields = ["status", "closedAt"];
+
+    for (const field of forbiddenFields) {
+        if (req.body[field] !== undefined) {
+                return ApiResponse.BADREQUEST(
+                    res,
+                    `Não é permitido alterar o campo '${field}' manualmente.`
+                );
+            }
+        }
+        if (req.body.endsAt === null) {
+            return ApiResponse.BADREQUEST(res, "O campo 'endsAt' não pode ser removido.");
+        }
+        
         const session = await ClassSessionService.updateSession(
             req.params.id,
             req.body

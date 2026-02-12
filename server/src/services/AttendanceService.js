@@ -3,6 +3,7 @@ import Attendance from "../models/attendanceModel.js";
 import Student from "../models/studentModel.js";
 import ClassSession from "../models/classSessionModel.js";
 import ClassService from "./ClassService.js";
+import ClassSessionService from "./ClassSessionService.js";
 import PreAttendanceService from "./PreAttendanceService.js";
 import { NotFoundError, ConflictError, ValidationError } from "../errors/appError.js";
 
@@ -19,17 +20,28 @@ class AttendanceService extends BaseService {
     async markPresenceByFace({ userId, roomId }) {
         const student = await Student.findOne({ _id: userId });
         if (!student) throw new NotFoundError("Aluno não encontrado.");
-
+        const now = new Date();
+        
         // Busca sessão ABERTA para essa sala
+        ClassSessionService.closeExpiredSessions(roomId);
+    
         const session = await ClassSession.findOne({
             room: roomId,
-            status: "open"
-        });
+            status: "active",
+            endsAt: { $gt: now }
+        }).sort({ endsAt: 1 }); 
 
-        console.log("Found open session for room:", session);
+        let studentClassIds = [];
+        for (const classCode of student.classes) {
+            const foundClass = await ClassService.getByCode(classCode);
+            if (foundClass ) {
+                studentClassIds.push(foundClass._id.toString());
+            }
+        }
+
 
         // 👉 NÃO há sessão aberta → PRE-ATTENDANCE
-        if (!session) {
+        if (!session || ( session && !studentClassIds.includes(session.class.toString()))) {
             await PreAttendanceService.create({
                 roomId,
                 studentId: student._id
@@ -43,17 +55,6 @@ class AttendanceService extends BaseService {
 
         // Sessão aberta → Attendance real
         // Transformando array de classCodes em array de classIDs
-        let studentClassIds = [];
-        for (const classCode of student.classes) {
-            const foundClass = await ClassService.getByCode(classCode);
-            if (foundClass ) {
-                studentClassIds.push(foundClass._id.toString());
-            }}
-            console.log("Student class IDs:", studentClassIds);
-            console.log("Session class ID:", session.class.toString());
-            if (!studentClassIds.includes(session.class.toString())) {
-            throw new ConflictError("Aluno não pertence à turma desta sessão.");
-        }
 
         const alreadyExists = await Attendance.findOne({
             session: session._id,
@@ -90,9 +91,16 @@ class AttendanceService extends BaseService {
         }
 
         const session = await ClassSession.findById(sessionId);
-        if (!session) throw new NotFoundError("Sessão não encontrada.");
-        if (session.status === "closed")
-            throw new ConflictError("Sessão fechada.");
+        const now = new Date();
+        
+        if (!session) throw new NotFoundError("Aula não encontrada.");
+        
+        if (session.endsAt <= now) {
+            ClassSessionService.closeSession(sessionId);
+            throw new ConflictError("Essa aula já acabou.")
+        }
+
+        if (session.status === "closed") throw new ConflictError("Esta aula está encerrada.");
 
         const student = await Student.findById(studentId);
         if (!student) throw new NotFoundError("Aluno não encontrado.");
@@ -224,7 +232,12 @@ class AttendanceService extends BaseService {
     async consumePreAttendances(sessionId) {
         const session = await ClassSession.findById(sessionId);
         if (!session) throw new NotFoundError("Sessão não encontrada.");
-        console.log("Consuming pre-attendances for session:", sessionId);
+        
+        const now = new Date();
+
+        if (session.status !== "active" || session.endsAt <= now) {
+            throw new ConflictError("Sessão encerrada.");
+        }
 
         const preAttendances = await PreAttendanceService.getByRoom(session.room.toString());
 
@@ -243,15 +256,9 @@ class AttendanceService extends BaseService {
             // valida vínculo com a turma
 
             // Transformando array de classCodes em array de classIDs
-            let studentClassIds = [];
-            for (const classCode of student.classes) {
-                const foundClass = await ClassService.getByCode(classCode);
-                if (foundClass) {
-                    studentClassIds.push(foundClass._id.toString());
-                }
-            }
+            const classData = await ClassService.getById(session.class);
 
-            if (!studentClassIds.includes(session.class.toString())) continue;
+            if (!student.classes.includes(classData.code.toString())) continue;
             console.log("Student belongs to class:", session.class.toString());
             const exists = await Attendance.findOne({
                 session: session._id,

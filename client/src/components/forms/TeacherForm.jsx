@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaArrowLeft, FaCheck, FaTimes } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaCheck,
+  FaTimes,
+  FaChalkboardTeacher,
+} from "react-icons/fa";
+
+import PageHeader from "../layout/PageHeader.jsx";
+import Toast from "../ui/Toast.jsx";
 import { useUsers } from "../../hooks/useUsers";
 
 export default function TeacherForm({
@@ -33,6 +41,19 @@ export default function TeacherForm({
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [initialIsActive, setInitialIsActive] = useState(true);
+
+  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const showToast = (text, type = "info") => {
+    setMessage({ text, type });
+  };
+
+  useEffect(() =>{
+    setMessage({
+      text: error,
+      type: "error"
+    })
+  }, [error])
 
   useEffect(() => {
     let mounted = true;
@@ -154,23 +175,19 @@ export default function TeacherForm({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <button
-          onClick={() => navigate("/teachers")}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium mb-4 transition-colors"
-        >
-          <FaArrowLeft size={18} /> Voltar
-        </button>
-        <h1 className="text-3xl font-bold text-gray-900">
-          {mode === "edit" ? "Editar Professor" : "Cadastrar Novo Professor"}
-        </h1>
-        <p className="text-gray-600 mt-2">
-          {mode === "edit"
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <PageHeader
+        backTo="/teachers"
+        icon={FaChalkboardTeacher}
+        title={
+          mode === "edit" ? "Editar Professor" : "Cadastrar Novo Professor"
+        }
+        subtitle={
+          mode === "edit"
             ? "Atualize os dados do professor"
-            : "Preencha os dados para cadastrar um novo professor"}
-        </p>
-      </div>
+            : "Preencha os dados para cadastrar um novo professor"
+        }
+      />
 
       {success && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2">

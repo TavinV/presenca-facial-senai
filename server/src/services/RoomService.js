@@ -42,7 +42,7 @@ class RoomService extends BaseService {
     /**
      * Atualizar sala
      */
-    async updateRoom(id, data) {
+    async update(id, data) {
         if (data.code) {
             data.code = data.code.toUpperCase();
 
@@ -50,6 +50,7 @@ class RoomService extends BaseService {
                 code: data.code,
                 _id: { $ne: id }
             });
+
 
             if (exists) {
                 throw new ConflictError("Já existe uma sala com este código.");

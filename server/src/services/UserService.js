@@ -105,6 +105,15 @@ class UserService extends BaseService {
     }
 
     async update(id, data){
+        const conflict = await User.findOne(
+            {
+                email: data.email,
+                _id: { $ne: id }
+            }
+        )
+        if (conflict){
+            throw new ConflictError("Já existe um usuário com esse email.")
+        }
         return this.#stripSensitiveData(await super.update(id, data))
     }
 

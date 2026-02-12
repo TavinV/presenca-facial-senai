@@ -121,6 +121,7 @@ export default function ClassViewPage() {
           loading={classesLoading && classStudents.length === 0}
           classCode={classCode}
           hasMore={hasMoreStudents}
+          classDetails={classDetails}
           onLoadMore={() => getStudents(classCode)}
           addingStudent={addingStudent}
           removingStudent={removingStudent}

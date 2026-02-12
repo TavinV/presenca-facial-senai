@@ -11,6 +11,7 @@ import {
   FaTrash,
   FaToggleOn,
   FaToggleOff,
+  FaDesktop,
   FaKey,
   FaSync,
   FaPlus,
@@ -115,7 +116,10 @@ export default function TotemsPage() {
     <Layout>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Totens</h1>
+          <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+            <FaDesktop className="text-red-600 mr-3" />
+            Totens
+          </h1>
           <p className="text-gray-600">Gerencie todos os totens do sistema</p>
         </div>
 

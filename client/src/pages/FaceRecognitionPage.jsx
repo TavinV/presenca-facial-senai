@@ -92,8 +92,7 @@ export default function FacialAttendancePage() {
         type: "error",
         message: result.message,
       });
-      // console.log("Erro ao processar captura:", error);
-      // showToast("Erro ao processar", "error");
+
     } finally {
       setLoading(false);
         setTimeout(() => {

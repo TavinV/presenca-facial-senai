@@ -397,9 +397,9 @@ export default function ClassAttendancePage() {
     // Estatísticas
     const stats = useMemo(() => {
         if (!reportData) return null;
-
-        const present = reportData.presentes?.length || 0;
         const absent = reportData.ausentes?.length || 0;
+        const late = reportData.atrasados?.length || 0;
+        const present = reportData.presentes?.length  + late || 0;
         const total = present + absent;
         const percentage = Math.round((present / total) * 100) || 0;
 
@@ -407,7 +407,7 @@ export default function ClassAttendancePage() {
             total,
             present,
             absent,
-            late: 0,
+            late,
             percentage
         };
     }, [reportData]);
@@ -549,7 +549,7 @@ export default function ClassAttendancePage() {
                                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                                         <FiUsers />
                                         <span>
-                                            Sessão: {sessionInfo.name} • {sessionInfo.status === 'open' ? 'Aberta' : 'Fechada'}
+                                            Sessão: {sessionInfo.name} • {sessionInfo.status === 'active' ? 'Aberta' : 'Fechada'}
                                         </span>
                                     </div>
                                 </div>

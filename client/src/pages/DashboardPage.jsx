@@ -98,7 +98,7 @@ export default function DashboardPage() {
       title: "Minhas Turmas",
       description: "Visualizar turmas atribuídas",
       icon: <FaBuilding className="text-2xl" />,
-      path: "/my-classes",
+      path: "/classes",
       color: "from-blue-500 to-blue-600",
     },
     {
@@ -106,7 +106,7 @@ export default function DashboardPage() {
       title: "Meus Alunos",
       description: "Ver alunos das minhas turmas",
       icon: <FaUserGraduate className="text-2xl" />,
-      path: "/my-students",
+      path: "/students",
       color: "from-green-500 to-green-600",
     },
     {
@@ -114,7 +114,7 @@ export default function DashboardPage() {
       title: "Minhas Aulas",
       description: "Acompanhar e criar aulas",
       icon: <FaCalendarAlt className="text-2xl" />,
-      path: "/my-sessions",
+      path: "/class-sessions/list",
       color: "from-purple-500 to-purple-600",
     },
   ];

@@ -15,6 +15,7 @@ export function StudentList({
     onRemoveStudent,
     loading,
     classCode,
+    classDetails,
     hasMore,
     onLoadMore,
     addingStudent,
@@ -24,17 +25,17 @@ export function StudentList({
 
     const handleRemove = (studentId, studentName) => {
         showModal({
-            title: "Remover Aluno da Turma",
-            message: `Tem certeza que deseja remover ${studentName} da turma ${classCode}? Esta ação não pode ser desfeita.`,
-            type: "danger",
-            confirmText: "Remover",
-            cancelText: "Cancelar",
-            confirmButtonProps: {
-                className: "bg-red-600 hover:bg-red-700"
-            },
-            onConfirm: async () => {
-                await onRemoveStudent(classCode, studentId);
-            },
+          title: "Remover Aluno da Turma",
+          message: `Tem certeza que deseja remover ${studentName} da turma ${classDetails.course}? Esta ação não pode ser desfeita.`,
+          type: "danger",
+          confirmText: "Remover",
+          cancelText: "Cancelar",
+          confirmButtonProps: {
+            className: "bg-red-600 hover:bg-red-700",
+          },
+          onConfirm: async () => {
+            await onRemoveStudent(classCode, studentId);
+          },
         });
     };
 
@@ -85,7 +86,7 @@ export function StudentList({
                         <div>
                             <p className="text-sm text-gray-500">Alunos Ativos</p>
                             <p className="text-2xl font-bold text-gray-800">
-                                {students.filter(s => s.isActive).length}
+                                {students.filter(s => s?.isActive).length}
                             </p>
                         </div>
                     </div>
@@ -107,28 +108,29 @@ export function StudentList({
                             </span>
                             <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full flex items-center">
                                 <MdSchool className="h-3 w-3 mr-1" />
-                                {students.filter(s => s.isActive).length}
+                                {students.filter(s => s?.isActive).length}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 <div className="divide-y divide-gray-200">
-                    {students.map((student) => (
+                    {students.filter(Boolean).map((student) => (
+
                         <div
-                            key={student._id}
+                            key={student?._id}
                             className="px-6 py-4 hover:bg-gray-50 transition-colors flex justify-between items-center"
                         >
                             <div className="flex items-center space-x-4 flex-1">
                                 <div className="flex-shrink-0">
                                     <div className="h-10 w-10 rounded-full bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-center text-white font-semibold">
-                                        {student.name.charAt(0)}
+                                        {student?.name.charAt(0) || "U"}
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center space-x-2">
-                                        <span className="font-medium text-gray-800">{student.name}</span>
-                                        {student.isActive ? (
+                                        <span className="font-medium text-gray-800">{student?.name}</span>
+                                        {student?.isActive ? (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                 Ativo
                                             </span>
@@ -140,17 +142,17 @@ export function StudentList({
                                     </div>
                                     <div className="text-sm text-gray-600 mt-1 flex items-center">
                                         <GiGraduateCap className="h-3 w-3 mr-1 text-gray-400" />
-                                        Matrícula: <span className="font-mono ml-1">{student.registration}</span>
+                                        Matrícula: <span className="font-mono ml-1">{student?.registration}</span>
                                     </div>
                                     <div className="text-xs text-gray-500 mt-1 flex items-center flex-wrap gap-2">
                                         <span className="flex items-center">
                                             <MdTag className="h-3 w-3 mr-1" />
-                                            ID: <span className="font-mono ml-1">{student._id.substring(0, 8)}...</span>
+                                            ID: <span className="font-mono ml-1">{student?._id.substring(0, 8)}...</span>
                                         </span>
-                                        {student.createdAt && (
+                                        {student?.createdAt && (
                                             <span className="flex items-center">
                                                 <MdSchool className="h-3 w-3 mr-1" />
-                                                Cadastrado em: {new Date(student.createdAt).toLocaleDateString('pt-BR')}
+                                                Cadastrado em: {new Date(student?.createdAt).toLocaleDateString('pt-BR')}
                                             </span>
                                         )}
                                     </div>
@@ -160,22 +162,22 @@ export function StudentList({
                                 <div className="text-right">
                                     <div className="text-sm text-gray-600 flex items-center justify-end">
                                         <MdPeople className="h-3 w-3 mr-1" />
-                                        {student.classes?.length || 0} turma(s)
+                                        {student?.classes?.length || 0} turma(s)
                                     </div>
                                     <div className="text-xs text-gray-400 max-w-[120px] truncate">
-                                        {student.classes?.join(', ')}
+                                        {student?.classes?.join(', ')}
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => handleRemove(student._id, student.name)}
-                                    disabled={removingStudent === student._id}
-                                    className={`p-2 rounded-lg transition-colors flex items-center ${removingStudent === student._id
+                                    onClick={() => handleRemove(student?._id, student.name)}
+                                    disabled={removingStudent === student?._id}
+                                    className={`p-2 rounded-lg transition-colors flex items-center ${removingStudent === student?._id
                                         ? "bg-gray-100 text-gray-400 cursor-wait"
                                         : "text-red-600 hover:bg-red-50 hover:text-red-700"
                                         }`}
                                     title="Remover aluno da turma"
                                 >
-                                    {removingStudent === student._id ? (
+                                    {removingStudent === student?._id ? (
                                         <MdRefresh className="animate-spin h-5 w-5" />
                                     ) : (
                                         <FaUserMinus className="h-5 w-5" />

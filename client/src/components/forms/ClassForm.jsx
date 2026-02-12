@@ -21,6 +21,10 @@ import {
   FaBook,
 } from "react-icons/fa";
 
+import PageHeader from "../layout/PageHeader.jsx";
+import Toast from "../ui/Toast.jsx";
+
+
 const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
   const { addTeacher, addRoom } = useClasses();
   const { users, loadUsers } = useUsers();
@@ -37,6 +41,12 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const navigate = useNavigate();
+
+  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const showToast = (text, type = "info") => {
+    setMessage({ text, type });
+  };
 
   // 🔹 Preencher dados no EDIT
   useEffect(() => {
@@ -109,41 +119,69 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
 
   const teachers = users.filter((user) => user.role === "professor");
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setIsSubmitting(true);
+ async function handleSubmit(e) {
+   e.preventDefault();
 
-    // Ensure types/formats match server validation
-    const payload = {
-      code,
-      course,
-      shift,
-      year: Number(year),
-      subjects: (subjects || []).map((s) => ({
-        code: (s.code || "").toUpperCase(),
-        name: s.name,
-      })),
-    };
+   if (!code || !course || !shift || !year) {
+     showToast("Preencha todos os campos obrigatórios.", "error");
+     return;
+   }
 
-    const result = await onSubmit(payload);
+   if (subjects.length === 0) {
+     showToast("Adicione pelo menos uma disciplina.", "error");
+     return;
+   }
 
-    if (result?.success && result.data) {
-      const classId = result.data._id || result.data.id;
+   setIsSubmitting(true);
 
-      for (const teacherId of selectedTeachers) {
-        await addTeacher(classId, teacherId);
-      }
+   try {
+     const payload = {
+       code,
+       course,
+       shift,
+       year: Number(year),
+       subjects: subjects.map((s) => ({
+         code: (s.code || "").toUpperCase(),
+         name: s.name,
+       })),
+     };
 
-      for (const roomId of selectedRooms) {
-        await addRoom(classId, roomId);
-      }
-      // Redirect to the classes list after successful create/edit
-      navigate(`/classes`);
-      return;
-    }
+     const result = await onSubmit(payload);
 
-    setIsSubmitting(false);
-  }
+     if (!result?.success || !result.data) {
+       throw new Error(result?.message || "Erro ao salvar turma.");
+     }
+
+     const classId = result.data._id || result.data.id;
+
+     // Adicionando professores
+     for (const teacherId of selectedTeachers) {
+       await addTeacher(classId, teacherId);
+     }
+
+     // Adicionando salas
+     for (const roomId of selectedRooms) {
+       await addRoom(classId, roomId);
+     }
+
+     showToast(
+       mode === "edit"
+         ? "Turma atualizada com sucesso!"
+         : "Turma criada com sucesso!",
+       "success",
+     );
+
+     setTimeout(() => {
+       navigate("/classes");
+     }, 1000);
+   } catch (error) {
+     console.error(error);
+     showToast(error.message || "Erro inesperado ao salvar turma.", "error");
+   } finally {
+     setIsSubmitting(false);
+   }
+ }
+
 
   const toggleTeacher = (id) => {
     setSelectedTeachers((prev) =>
@@ -161,16 +199,16 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            {mode === "edit" ? "Editar Turma" : "Criar Nova Turma"}
-          </h1>
-          <p className="text-gray-600 mt-2">
-            {mode === "edit"
+        <PageHeader
+          backTo="/classes"
+          icon={FaUserGraduate}
+          title={mode === "edit" ? "Editar Turma" : "Cadastrar Nova Turma"}
+          subtitle={
+            mode === "edit"
               ? "Atualize os dados da turma selecionada"
-              : "Cadastre uma nova turma no sistema de presença facial"}
-          </p>
-        </div>
+              : "Cadastre uma nova turma no sistema de presença facial"
+          }
+        />
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
           {/* Form Header */}
@@ -207,9 +245,10 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
                   <input
                     type="text"
                     value={code}
-                    onChange={(e) => setCode(e.target.value)}
+                    uppercase
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+                    className="w-full uppercase px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
                     placeholder="Ex: TURMA-2024-A"
                   />
                 </div>
@@ -272,81 +311,101 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
                     max="2100"
                   />
                 </div>
+              </div>
 
-                {/* DISCIPLINAS / SUBJECTS */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200">
-                  <div className="flex items-center mb-4">
-                    <FaBook className="text-red-600 text-xl mr-3" />
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-800">
-                        Disciplinas
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        Adicione as disciplinas (código e nome) desta turma
+              {/* DISCIPLINAS / SUBJECTS - HORIZONTAL */}
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <FaBook className="text-red-600 text-xl mr-3" />
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-800">
+                      Disciplinas
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      Adicione as disciplinas (código e nome) desta turma
+                    </p>
+                  </div>
+                  <span className="ml-auto bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
+                    {subjects.length} disciplina(s)
+                  </span>
+                </div>
+
+                {/* Inputs horizontais */}
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <input
+                    type="text"
+                    placeholder="Código (ex: BD)"
+                    value={subjectCode}
+                    onChange={(e) =>
+                      setSubjectCode(e.target.value.toLocaleUpperCase())
+                    }
+                    className="flex-1 uppercase min-w-[150px] px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nome da disciplina"
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    className="flex-1 min-w-[200px] px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={addOrUpdateSubject}
+                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center"
+                  >
+                    {editingSubjectIndex !== null ? (
+                      <>
+                        <FaEdit className="mr-2" />
+                        Atualizar
+                      </>
+                    ) : (
+                      <>
+                        <FaPlus className="mr-2" />
+                        Adicionar
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Lista de disciplinas em cards horizontais */}
+                <div className="flex flex-wrap gap-3">
+                  {subjects.map((s, idx) => (
+                    <div
+                      key={`${s.code}-${idx}`}
+                      className="inline-flex items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="mr-4">
+                        <span className="font-semibold text-gray-800">
+                          {s.code}
+                        </span>
+                        <span className="text-gray-600 ml-2">{s.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => editSubject(idx)}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeSubject(idx)}
+                          className="text-sm text-red-600 hover:text-red-800 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {subjects.length === 0 && (
+                    <div className="w-full text-center py-6">
+                      <FaBook className="text-gray-300 text-4xl mx-auto mb-3" />
+                      <p className="text-gray-500">
+                        Nenhuma disciplina cadastrada
                       </p>
                     </div>
-                    <span className="ml-auto bg-red-100 text-red-800 text-xs font-semibold px-3 py-1 rounded-full">
-                      {subjects.length} disciplina(s)
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                    <input
-                      type="text"
-                      placeholder="Código (ex: BD)"
-                      value={subjectCode}
-                      onChange={(e) => setSubjectCode(e.target.value)}
-                      className="px-4 py-3 border border-gray-300 rounded-lg"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Nome da disciplina"
-                      value={subjectName}
-                      onChange={(e) => setSubjectName(e.target.value)}
-                      className="px-4 py-3 border border-gray-300 rounded-lg"
-                    />
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={addOrUpdateSubject}
-                        className="px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg w-full"
-                      >
-                        {editingSubjectIndex !== null
-                          ? "Atualizar"
-                          : "Adicionar"}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {subjects.map((s, idx) => (
-                      <div
-                        key={`${s.code}-${idx}`}
-                        className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 w-full"
-                      >
-                        <div className="text-left mr-3">
-                          <div className="font-medium">{s.code}</div>
-                          <div className="text-xs text-gray-600">{s.name}</div>
-                        </div>
-                        <div className="ml-auto flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => editSubject(idx)}
-                            className="text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => removeSubject(idx)}
-                            className="text-sm text-red-600 hover:text-red-800"
-                          >
-                            Remover
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -629,6 +688,14 @@ const ClassForm = ({ mode = "create", initialData = null, onSubmit }) => {
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      <Toast
+        message={message.text}
+        type={message.type}
+        onClose={() => setMessage({ text: "", type: "" })}
+      />
+      
     </div>
   );
 };

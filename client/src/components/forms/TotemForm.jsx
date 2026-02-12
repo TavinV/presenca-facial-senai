@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useTotems } from "../../hooks/useTotems";
 import useModal from "../../hooks/useModal";
 import Modal from "../ui/Modal";
+import Toast from "../ui/Toast.jsx";
 import { useRooms } from "../../hooks/useRooms";
+import PageHeader from "../layout/PageHeader.jsx";
+
 import {
   FaQrcode,
   FaMapMarkerAlt,
@@ -11,6 +14,7 @@ import {
   FaToggleOff,
   FaSave,
   FaPlus,
+  FaDesktop,
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
@@ -20,7 +24,6 @@ export default function TotemForm({
   initialData = {},
   onSubmit,
 }) {
-  const { createTotem, updateTotem } = useTotems();
   const { rooms, loadRooms } = useRooms();
 
   const [form, setForm] = useState({
@@ -31,6 +34,11 @@ export default function TotemForm({
   });
   const [submitting, setSubmitting] = useState(false);
   const { modalConfig, showModal, hideModal, handleConfirm } = useModal();
+  const [message, setMessage] = useState({ text: "", type: "" });
+
+  const showToast = (text, type = "info") => {
+    setMessage({ text, type });
+  };
 
   useEffect(() => {
     loadRooms();
@@ -59,52 +67,45 @@ export default function TotemForm({
     }));
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function handleSubmit() {
     setSubmitting(true);
+
     try {
-      if (mode === "edit") {
-        const id = initialData.id || initialData._id;
-        const res = onSubmit
-          ? await onSubmit(form)
-          : await updateTotem(id, form);
-        if (res?.success === false)
-          throw new Error(res.message || "Erro ao atualizar totem");
-        showModal({
-          title: "Totem atualizado",
-          message: "Totem atualizado",
-          type: "success",
-          showCancel: false,
-          confirmText: "OK",
-        });
-      } else {
-        const res = onSubmit ? await onSubmit(form) : await createTotem(form);
-        if (res?.success === false)
-          throw new Error(res.message || "Erro ao criar totem");
-        showModal({
-          title: "Totem criado",
-          message: "Totem criado",
-          type: "success",
-          showCancel: false,
-          confirmText: "OK",
-        });
-        setForm({ name: "", location: "", room: "", isActive: true });
+      let res;
+      res = await onSubmit(form);
+
+      if (!res?.success) {
+        throw new Error(res?.message || "Erro ao salvar totem.");
       }
+
+      showToast(
+        mode === "edit"
+          ? "Totem atualizado com sucesso!"
+          : "Totem criado com sucesso!",
+        "success",
+      );
+
+      window.location.href = "/totems"
     } catch (err) {
-      showModal({
-        title: "Erro",
-        message: err.message || "Erro ao salvar",
-        type: "danger",
-        showCancel: false,
-        confirmText: "OK",
-      });
+      showToast(err.message || "Erro inesperado.", "error");
     } finally {
       setSubmitting(false);
     }
   }
 
+
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <PageHeader
+        backTo="/totems"
+        icon={FaDesktop}
+        title={mode === "edit" ? "Editar Totem" : "Cadastrar Novo Totem"}
+        subtitle={
+          mode === "edit"
+            ? "Atualize as configurações do totem"
+            : "Configure um novo totem para reconhecimento facial"
+        }
+      />
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         {/* Cabeçalho do Formulário */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
@@ -125,7 +126,22 @@ export default function TotemForm({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            showModal({
+              title: mode === "edit" ? "Confirmar edição" : "Confirmar criação",
+              message:
+                mode === "edit"
+                  ? "Deseja realmente atualizar este totem?"
+                  : "Deseja realmente cadastrar este novo totem?",
+              confirmText: "Confirmar",
+              cancelText: "Cancelar",
+              onConfirm: () => handleSubmit(),
+            });
+          }}
+          className="p-6"
+        >
           <div className="space-y-5">
             {/* Nome */}
             <div>
@@ -325,6 +341,11 @@ export default function TotemForm({
           showConfirm={modalConfig.showConfirm}
         />
       </div>
+      <Toast
+        message={message.text}
+        type={message.type}
+        onClose={() => setMessage({ text: "", type: "" })}
+      />
     </div>
   );
 }

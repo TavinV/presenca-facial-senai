@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import ClassCard from "../components/classes/ClassCard";
 
 //icons
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus, FaBuilding } from "react-icons/fa6";
 import Button from "../components/ui/Button";
 
 export default function ClassesPage() {
@@ -115,25 +115,26 @@ export default function ClassesPage() {
         <div className="p-4 sm:p-6">
           <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Turmas</h1>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <FaBuilding className="text-red-600 mr-3" />
+                Turmas
+              </h1>
               <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">
-                {
-                  user.role === "coordenador" ? ("Gerencie todas as turmas do sistema") : ("Veja suas turmas")
-                }
+                {user.role === "coordenador"
+                  ? "Gerencie todas as turmas do sistema"
+                  : "Veja suas turmas"}
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              {
-                user.role === "coordenador" && (
+              {user.role === "coordenador" && (
                 <button
                   className="bg-red-600 hover:bg-red-700 text-white font-medium text-sm px-4 flex items-center justify-center py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto"
                   onClick={() => navigate("/classes/new")}
                 >
                   <span className="whitespace-nowrap">Criar Turma</span>
                   <FaPlus size={18} className="ml-2 flex-shrink-0" />
-                </button>    
-                )
-              }
+                </button>
+              )}
               <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg whitespace-nowrap">
                 Total:{" "}
                 <span className="font-bold">
@@ -178,7 +179,7 @@ export default function ClassesPage() {
                   onDelete={handleDelete}
                   onViewStudents={handleViewStudents}
                   loading={deleteLoading}
-                  coordinator={(user.role === "coordenador")}
+                  coordinator={user.role === "coordenador"}
                 />
               ))}
             </div>

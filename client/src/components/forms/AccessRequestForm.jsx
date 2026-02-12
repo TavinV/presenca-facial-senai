@@ -335,10 +335,10 @@ export default function AccessRequestForm({ onSubmit }) {
                     Enviando solicitação...
                   </>
                 ) : (
-                  <>
+                  <div className="flex items-center">
                     <FaPaperPlane className="mr-3" />
                     Enviar Solicitação de Acesso
-                  </>
+                  </div>
                 )}
               </Button>
             </div>

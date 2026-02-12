@@ -7,6 +7,7 @@ import {
   FaEdit,
   FaTrash,
   FaEye,
+  FaChalkboardTeacher,
   FaFilter,
 } from "react-icons/fa";
 import useClasses from "../hooks/useClasses";
@@ -147,7 +148,10 @@ export default function TeachersPage() {
           {/* Cabeçalho */}
           <div className="mb-8 flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Professores</h1>
+              <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+                <FaChalkboardTeacher className="text-red-600 mr-3" />
+                Professores
+              </h1>
               <p className="text-gray-600 mt-2">
                 Gerencie todos os professores do sistema
               </p>
@@ -236,10 +240,10 @@ export default function TeachersPage() {
                   className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden"
                 >
                   {/* Header do card */}
-                  <div className="bg-linear-to-r from-red-600 to-red-700 px-6 py-4">
+                  <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-12 h-12 bg-gradient-to-r from-red-600 to-red-700 bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-lg">
                           {teacher.name?.charAt(0)}
                         </div>
                         <div>
@@ -316,17 +320,19 @@ export default function TeachersPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(teacher._id)}
-                        className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                        className="px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white flex items-center rounded-lg transition-colors"
                         title="Editar"
                       >
-                        <FaEdit size={18} />
+                        Editar
+                        <FaEdit size={18} className="ml-3" />
                       </button>
                       <button
                         onClick={() => handleDelete(teacher._id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="px-6 py-2 bg-red-700 hover:bg-red-600 text-white flex items-center rounded-lg transition-colors"
                         title="Deletar"
                       >
-                        <FaTrash size={18} />
+                        Excluir
+                        <FaTrash size={18} className="ml-3" />
                       </button>
                     </div>
                     <span className="text-xs text-gray-500">

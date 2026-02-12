@@ -9,7 +9,7 @@ import useModal from "../hooks/useModal";
 import Search from "../components/ui/Search";
 import StudentsTable from "../components/students/StudentTable.jsx";
 
-import { FaPlus, FaSearch, FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { FaPlus, FaSearch, FaEdit, FaTrash, FaEye, FaUserGraduate } from "react-icons/fa";
 
 export default function StudentsPage() {
   const {
@@ -135,7 +135,10 @@ export default function StudentsPage() {
         {/* Cabeçalho */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Alunos</h1>
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center">
+              <FaUserGraduate className="text-red-600 mr-3" />
+              Alunos
+            </h1>
             <p className="text-gray-600 mt-2">
               Gerencie todos os alunos do sistema
             </p>

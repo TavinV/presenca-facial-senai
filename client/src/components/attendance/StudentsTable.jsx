@@ -14,7 +14,7 @@ export default function StudentsTable({
     onMarkLate,
     onMarkAbsent
 }) {
-    const isClosed = sessionInfo.status !== "open";
+    const isClosed = sessionInfo.status !== "active";
 
     const getRowClass = (status) => {
         switch (status) {

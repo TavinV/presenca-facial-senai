@@ -3,6 +3,7 @@ import corsMiddleware from "./config/cors.js";
 import rateLimit from "express-rate-limit";
 import { configDotenv } from "dotenv";
 import { connectDB } from "./config/db.js";
+import { startAutoCloseClassesJob } from "./jobs/autoCloseClassSessions.js";
 
 const app = express();
 
@@ -12,6 +13,7 @@ configDotenv()
 // Conexão com MongoDB
 connectDB();
 
+startAutoCloseClassesJob()
 // Middlewares globais
 app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true }));

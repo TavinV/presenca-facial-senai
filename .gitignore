@@ -156,3 +156,9 @@ ENV/
 # =====================
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# =====================
+# MongoDB backup folder
+# =====================
+
+backups

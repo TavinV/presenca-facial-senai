@@ -15,9 +15,13 @@ class ClassSessionService extends BaseService {
      * - Usa teacherId vindo do JWT
      * - Sessão nasce aberta
      */
-    async create({ classId, subjectCode, name, teacherId, room, byCoordinator = false }) {
+    async create({ classId, subjectCode, name, teacherId, room, endsAt, byCoordinator = false }) {
         if (!classId) {
             throw new ValidationError("O ID da turma é obrigatório.");
+        }
+
+        if (!endsAt) {
+            throw new BadRequestError("Sessão deve possuir endsAt definido.");
         }
 
         const classExists = await ClassService.getById(classId);
@@ -47,38 +51,29 @@ class ClassSessionService extends BaseService {
             );
         }
 
-        const date = new Date();
-        date.setHours(0, 0, 0, 0);
-
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
+        const now = new Date();
 
         const conflict = await this.model.findOne({
-            class: classId,
             room,
-            status: "open",
-            date: {
-                $gte: startOfDay,
-                $lte: endOfDay,
-            },
+            status: "active",
+            endsAt: { $gt: now }
         });
 
         if (conflict) {
             throw new ValidationError(
-                "Já existe uma aula aberta para essa turma e sala neste dia."
+                "Já existe uma aula aberta nesta sala."
             );
         }
 
         const session = await super.create({
             class: classId,
             name,
-            date,
+            date: now,
             teacher: teacherId,
             room,
-            status: "open",
+            endsAt,
+            startedAt: now,
+            status: "active",
             subjectCode,
         });
 
@@ -130,23 +125,47 @@ class ClassSessionService extends BaseService {
      * (usado pelo AttendanceService / Totem)
      */
     async getOpenSessionByRoom(roomId, date) {
-        const start = new Date(date);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(date);
-        end.setHours(23, 59, 59, 999);
+        const now = new Date()
 
         const session = await this.model.findOne({
             room: roomId,
-            status: "open",
-            date: { $gte: start, $lte: end },
+            status: "active",
+            endsAt: { $gt : now}
         });
+
+        if (session && now >= session.endsAt) {
+            session.status = "closed";
+            session.closedAt = now;
+            await session.save();
+
+            throw new NotFoundError("Sessão encerrada automaticamente.");
+        }
 
         if (!session) {
             throw new NotFoundError("Nenhuma sessão aberta encontrada para esta sala.");
         }
 
         return session;
+    }
+
+
+    /*
+    * Fecha automaticamente aulas abertas que já acabaram, usando roomId
+    */
+    async closeExpiredSessions(roomId) {
+        const now = new Date();
+
+        await this.model.updateMany(
+            {
+                room: roomId,
+                status: "active",
+                endsAt: { $lte: now }
+            },
+            {
+                status: "closed",
+                closedAt: now
+            }
+        );
     }
 
     /**
@@ -165,7 +184,12 @@ class ClassSessionService extends BaseService {
             throw new NotFoundError("Sessão não encontrada.");
         }
 
+        if (session.status !== "active") {
+            throw new ValidationError("A sessão já está encerrada.");
+        }
+
         session.status = "closed";
+        session.closedAt = new Date()
         await session.save();
 
         return session;

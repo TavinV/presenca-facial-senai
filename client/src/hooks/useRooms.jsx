@@ -74,7 +74,6 @@ export function useRooms() {
       return { success: true };
       }
     } catch (err) {
-      console.log(err)
       setError(err.message || "Erro ao deletar sala");
       return { success: false, message: err.message || "Erro ao deletar sala" };
     } finally {
@@ -88,10 +87,12 @@ export function useRooms() {
       setLoading(true);
       setError(null);
       const response = await roomsApi.create(roomData);
+
       if (response.success) {
         const created = response.data;
         setRooms((prev) => [created, ...prev]);
         return { success: true, data: created };
+        
       } else {
         setError(response.message || "Erro ao criar sala");
         return {

@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import Toast from "../ui/Toast";
 import Modal from "../ui/Modal"; // Importar o Modal
 import useModal from "../../hooks/useModal"; // Importar o hook useModal
+import PageHeader from "../layout/PageHeader.jsx";
 
 import {
   FaCalendarAlt,
@@ -51,7 +52,8 @@ export default function ClassSessionForm({
     classId: fixedClassId || "",
     room: "",
     subject: "",
-    isClosed: false,
+    teacher: "",
+    endTime: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -285,6 +287,29 @@ export default function ClassSessionForm({
       return;
     }
 
+    if (!form.endTime) {
+      showToast("Informe o horário de término da aula", "warning");
+      return;
+    }
+
+    // Construir data com hoje + horário selecionado
+    const [hours, minutes] = form.endTime.split(":");
+
+    const endsAt = new Date();
+    endsAt.setHours(parseInt(hours));
+    endsAt.setMinutes(parseInt(minutes));
+    endsAt.setSeconds(0);
+    endsAt.setMilliseconds(0);
+
+    // Validar se horário já passou
+    if (endsAt <= new Date()) {
+      showToast(
+        "O horário de término não pode ser anterior ao horário atual",
+        "error",
+      );
+      return;
+    }
+
     if (!form.classId) {
       showToast("Selecione uma turma", "warning");
       return;
@@ -308,7 +333,7 @@ export default function ClassSessionForm({
       room: form.room,
       teacher: form.teacher,
       subjectCode: (form.subject || "").toString().toUpperCase().trim(),
-      status: form.isClosed ? "closed" : "active",
+      endsAt: endsAt.toISOString(),
     };
 
     // Mostrar modal de confirmação antes de salvar
@@ -316,7 +341,17 @@ export default function ClassSessionForm({
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+        <PageHeader 
+          backTo={"/class-sessions/list"} 
+          icon={FaCalendarAlt}
+          title={mode === "edit" ? "Editar aula" : "Iniciar uma aula"}
+          subtitle={
+            mode === "edit"
+              ? "Atualize os dados da aula selecionada"
+              : "Iniciar uma nova aula no sistema de presença facial"}
+        />
+
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         {/* Cabeçalho do Formulário */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
@@ -384,7 +419,8 @@ export default function ClassSessionForm({
                       key={selectedClass._id || selectedClass.id}
                       value={selectedClass._id || selectedClass.id}
                     >
-                      {selectedClass.code} - {selectedClass.course || "Sem nome"}
+                      {selectedClass.code} -{" "}
+                      {selectedClass.course || "Sem nome"}
                     </option>
                   )}
                 {classes.map((cls) => (
@@ -468,6 +504,24 @@ export default function ClassSessionForm({
               </select>
             </div>
 
+            {/* HORÁRIO DE TÉRMINO */}
+            <div>
+              <label className="block mb-2">
+                <div className="flex items-center text-gray-700 font-medium">
+                  <FaCalendarAlt className="text-red-600 mr-2" />
+                  Horário de Término *
+                </div>
+              </label>
+              <input
+                type="time"
+                name="endTime"
+                value={form.endTime}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+              />
+            </div>
+
             {/* PROFESSOR */}
             <div>
               <label className="block mb-2">
@@ -532,46 +586,6 @@ export default function ClassSessionForm({
                 rows="3"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors resize-none"
               />
-            </div>
-
-            {/* FECHADA */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center">
-                {form.isClosed ? (
-                  <FaLock className="text-red-600 mr-3" />
-                ) : (
-                  <FaLockOpen className="text-green-600 mr-3" />
-                )}
-                <div>
-                  <span className="font-medium text-gray-700">
-                    Status da Sessão
-                  </span>
-                  <p className="text-sm text-gray-500">
-                    {form.isClosed ? "Encerrada" : "Aberta para presenças"}
-                  </p>
-                </div>
-              </div>
-              <label className="flex items-center cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    name="isClosed"
-                    checked={form.isClosed}
-                    onChange={handleChange}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`block w-12 h-6 rounded-full transition-colors ${
-                      form.isClosed ? "bg-red-600" : "bg-green-600"
-                    }`}
-                  ></div>
-                  <div
-                    className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${
-                      form.isClosed ? "transform translate-x-6" : ""
-                    }`}
-                  ></div>
-                </div>
-              </label>
             </div>
           </div>
 

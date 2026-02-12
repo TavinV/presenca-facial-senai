@@ -64,6 +64,7 @@ services:
     image: mongo:7
     container_name: presenca_mongodb
     restart: unless-stopped
+    command: ["--logpath", "/dev/null", "--quiet"]
     env_file:
       - ./mongo/.env
     ports:
@@ -72,6 +73,25 @@ services:
       - mongo_data:/data/db
     networks:
       - presenca_network
+      
+  mongo-backup:
+    image: mongo:7
+    container_name: mongo_backup
+    env_file:
+      - ./mongo/.env
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backups:/backup
+    networks:
+      - presenca_network
+    entrypoint: >
+      sh -c "while true; do
+        TIMESTAMP=$$(date +'%Y-%m-%d_%H-%M-%S');
+        mongodump --uri=\"mongodb://$${MONGO_USER}:$${MONGO_PASSWORD}@$${MONGO_HOST}:$${MONGO_PORT}/?authSource=$${MONGO_AUTH_DB}\" --archive=/backup/backup-$$TIMESTAMP.gz --gzip;
+        echo Backup realizado em $$TIMESTAMP;
+        sleep 86400;
+      done"
 
 volumes:
   mongo_data:

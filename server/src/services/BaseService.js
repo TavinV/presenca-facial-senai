@@ -97,6 +97,10 @@ export default class BaseService {
             if (!updated) throw new NotFoundError("Registro não encontrado");
             return updated;
         } catch (err) {
+            if (err.code === 11000) {
+                const field = Object.keys(err.keyValue)[0];
+                throw new ConflictError("Registro duplicado, já existe um registro com o mesmo " + field + ".");
+            }
             if (err.name === "CastError") throw new ValidationError("ID inválido");
             if (err.name == "NotFoundError") throw new NotFoundError("Registro não encontrado");
             throw new AppError("Erro ao atualizar registro");

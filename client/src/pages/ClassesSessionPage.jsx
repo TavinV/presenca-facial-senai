@@ -84,7 +84,7 @@ export default function ClassesSession() {
         });
         return;
       }
-      console.log("Loading by teacher");
+
       loadByTeacher(id);
     } else {
       loadByClass(id);
@@ -150,7 +150,7 @@ export default function ClassesSession() {
   }
 
   const handleEdit = (id) => {
-    console.log("SESSION ID:", id);
+
     navigate(`/class-sessions/${id}`);
   };
 
@@ -243,7 +243,6 @@ export default function ClassesSession() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {console.log("Teachers:", teachers)}
                     {teachers.map((t) => (
                       <Link
                         key={t._id}
@@ -393,8 +392,18 @@ export default function ClassesSession() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {filtered.map((s) => {
                       const sessionId = s._id || s.id;
+                      let endsAt = s?.endsAt
+                      let formatedEndTime = null ;
+                      if (endsAt){
+                           formatedEndTime = new Date(endsAt).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          });
+                      };
+                     
+                      
                       const isClosed = s.status == "closed";
-
+                      
                       return (
                         <div
                           key={sessionId}
@@ -458,10 +467,10 @@ export default function ClassesSession() {
                               <FaClock className="text-gray-400 mr-3 w-5" />
                               <div>
                                 <span className="text-sm text-gray-500">
-                                  Duração
+                                  Horário de termino
                                 </span>
                                 <p className="font-medium">
-                                  {s.duration || "-"} minutos
+                                  {formatedEndTime || "-"}
                                 </p>
                               </div>
                             </div>

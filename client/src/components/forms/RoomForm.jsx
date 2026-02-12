@@ -17,6 +17,7 @@ import {
   FaToggleOff,
 } from "react-icons/fa";
 import { ImBlocked } from "react-icons/im";
+import PageHeader from "../layout/PageHeader.jsx"
 
 export default function RoomForm({
   mode = "create",
@@ -120,6 +121,9 @@ export default function RoomForm({
         "success"
       );
 
+      window.location.href = "/rooms";
+
+
       // Limpar formulário se for criação
       if (mode !== "edit" && !onSubmit) {
         setForm({ name: "", code: "", location: "", isActive: true });
@@ -133,7 +137,17 @@ export default function RoomForm({
   }
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto p-4 md:p-6">
+      <PageHeader
+        backTo={"/rooms"}
+        icon={FaBuilding}
+        title={mode === "edit" ? "Editar sala" : "Cadastrar uma sala"}
+        subtitle={
+          mode === "edit"
+            ? "Atualize os dados da sala selecionada"
+            : "Cadastrar uma nova sala"
+        }
+      />
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
         {/* Cabeçalho do Formulário */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
@@ -224,7 +238,9 @@ export default function RoomForm({
             {/* Status da Sala */}
             <div className="flex items-center justify-between p-5 bg-gray-50 rounded-lg border border-gray-200">
               <div className="flex items-center">
-                <div className={`p-3 rounded-lg mr-4 ${form.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
+                <div
+                  className={`p-3 rounded-lg mr-4 ${form.isActive ? "bg-green-100" : "bg-gray-100"}`}
+                >
                   {form.isActive ? (
                     <FaCheck className="text-green-500 text-xl" />
                   ) : (
@@ -250,11 +266,17 @@ export default function RoomForm({
                 className="relative focus:outline-none"
               >
                 <div className="w-14 h-7 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 bg-gray-300">
-                  <div className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ${form.isActive ? 'translate-x-7 bg-green-500' : ''}`} />
+                  <div
+                    className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ${form.isActive ? "translate-x-7 bg-green-500" : ""}`}
+                  />
                 </div>
                 <div className="absolute top-0 left-0 w-14 h-7 flex items-center justify-between px-1 pointer-events-none">
-                  <FaTimes className={`text-xs ${form.isActive ? 'text-gray-400' : 'text-white'}`} />
-                  <FaCheck className={`text-xs ${form.isActive ? 'text-white' : 'text-gray-400'}`} />
+                  <FaTimes
+                    className={`text-xs ${form.isActive ? "text-gray-400" : "text-white"}`}
+                  />
+                  <FaCheck
+                    className={`text-xs ${form.isActive ? "text-white" : "text-gray-400"}`}
+                  />
                 </div>
               </button>
             </div>
@@ -264,8 +286,8 @@ export default function RoomForm({
               <p className="text-sm text-gray-600">
                 <span className="font-medium">
                   Campos marcados com * são obrigatórios.
-                </span>
-                {" "}Uma sala ativa estará disponível para agendamento de aulas.
+                </span>{" "}
+                Uma sala ativa estará disponível para agendamento de aulas.
               </p>
             </div>
           </div>
