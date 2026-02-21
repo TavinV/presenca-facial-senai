@@ -185,7 +185,7 @@ export default function FacialAttendancePage() {
                 className="bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-2xl py-4 px-8 text-lg font-bold shadow-2xl flex items-center space-x-3"
               >
                 <FiCamera className="w-6 h-6" />
-                <span>{loading ? "Processando..." : "Iniciar Captura"}</span>
+                <span className="whitespace-nowrap">{loading ? "Processando..." : "Iniciar Captura"}</span>
               </motion.button>
 
               {/* Botão de configuração */}

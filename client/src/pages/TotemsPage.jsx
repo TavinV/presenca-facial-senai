@@ -18,6 +18,7 @@ import {
   FaMapMarkerAlt,
   FaDoorOpen,
   FaPowerOff,
+  FaClipboard,
   FaEye,
 } from "react-icons/fa";
 import { MdOutlineMeetingRoom } from "react-icons/md";
@@ -81,10 +82,11 @@ export default function TotemsPage() {
   }
 
   async function handleShowKey(id) {
-    const key = await getApiKey(id);
-    if (key) {
-      navigator.clipboard.writeText(key);
-      showToast("API Key copiada para a área de transferência!", "success");
+    const result = await getApiKey(id);
+
+    if (result.success === true) {
+      navigator.clipboard.writeText(result.apiKey);
+      showToast("Chave de totem copiada para a área de transferência!", "success");
     } else {
       showToast("Não foi possível recuperar a chave API", "error");
     }
@@ -92,21 +94,21 @@ export default function TotemsPage() {
 
   async function handleRegenerate(id) {
     showModal({
-      title: "Gerar nova API Key",
-      message: "Gerar uma nova chave API? A antiga será invalidada.",
+      title: "Gerar nova chave de totem?",
+      message: "Gerar uma nova chave de totem? A antiga será invalidada, e os totens associados desativados.",
       type: "warning",
       confirmText: "Gerar",
       cancelText: "Cancelar",
       onConfirm: async () => {
-        const key = await regenerateApiKey(id);
-        if (key) {
-          navigator.clipboard.writeText(key);
+        const result = await regenerateApiKey(id);
+        if (result.success === true) {
+          navigator.clipboard.writeText(result.apiKey);
           showToast(
-            "Nova API Key gerada e copiada para a área de transferência!",
+            "Nova chave de totem gerada e copiada para a área de transferência!",
             "success",
           );
         } else {
-          showToast("Não foi possível gerar nova chave API", "error");
+          showToast("Não foi possível gerar nova chave de totem", "error");
         }
       },
     });
@@ -251,18 +253,18 @@ export default function TotemsPage() {
                         <button
                           onClick={() => handleShowKey(t.id || t._id)}
                           className="flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
-                          title="Mostrar API Key"
+                          title="Mostrar chave de totem"
                         >
-                          <FaEye className="mr-2" />
-                          Ver Key
+                          <FaClipboard className="mr-2" />
+                          Copiar chave
                         </button>
                         <button
                           onClick={() => handleRegenerate(t.id || t._id)}
                           className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
-                          title="Gerar nova API Key"
+                          title="Gerar nova chave de totem"
                         >
                           <FaSync className="mr-2" />
-                          Nova Key
+                          Nova chave
                         </button>
                       </div>
                     </div>

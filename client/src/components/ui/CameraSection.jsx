@@ -257,7 +257,7 @@ export default function CameraSection({
           className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg ${cameraError ? "bg-gray-400 cursor-not-allowed" : "bg-gradient-to-r from-red-600 to-red-700"} text-white flex items-center justify-center space-x-3`}
         >
           <FiCamera className="w-6 h-6" />
-          <span>
+          <span className="whitespace-nowrap">
             {cameraError ? "Câmera Indisponível" : "Registrar Presença"}
           </span>
         </motion.button>
