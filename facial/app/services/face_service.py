@@ -100,7 +100,10 @@ def generate_embedding_from_image(file_bytes: bytes) -> np.ndarray:
         if len(encodings) > 1:
             raise ValueError("Mais de um rosto detectado na imagem")
 
-        return encodings[0]
+        embeding = encodings[0]
+        embeding = embeding / np.linalg.norm(embeding)  # Normaliza o vetor
+
+        return embeding
 
     finally:
         os.remove(tmp_path)

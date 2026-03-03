@@ -26,11 +26,13 @@ def validate_embedding(embedding: List[float]) -> np.ndarray:
 
     if vec.ndim != 1:
         raise ValueError("Embedding inválido")
+    
+    norm = np.linalg.norm(vec)
 
-    if np.linalg.norm(vec) == 0:
+    if norm == 0:
         raise ValueError("Embedding com norma zero")
 
-    return vec
+    return vec / norm
 
 
 # ================================
@@ -110,6 +112,16 @@ def recognize_student(
     best_distance = float(distances[best_index])
     best_match_id = student_ids[best_index]
 
+    has_seccond_best = len(distances) > 1
+
+    if has_seccond_best:
+        seccond_best_index = int(np.argsort(distances)[1])
+        seccond_best_distance = float(distances[seccond_best_index])
+        margin_between = seccond_best_distance - best_distance
+    else:
+        margin_between = None
+        seccond_best_distance = None
+
     print("\n" + "=" * 60)
     print("🎯 RESULTADO")
     print(f"   Melhor ID: {best_match_id}")
@@ -120,24 +132,47 @@ def recognize_student(
     # ===========================
     # 4️⃣ DECISÃO
     # ===========================
+
+    accept_match = False
+
     if best_distance <= settings.FACE_MATCH_THRESHOLD:
-        print(f"✅ MATCH ACEITO: {best_match_id}")
 
-        print(f"📈 Cache stats: {embedding_cache.get_cache_info()}")
+        if has_seccond_best:
+            if (
+                margin_between is not None and
+                margin_between >= settings.FACE_MATCH_MARGIN
+            ):
+                print(
+                    f"✅ MATCH ACEITO: {best_match_id} "
+                    f"(margem de {margin_between:.4f})"
+                )
+                accept_match = True
+            else:
+                print(
+                    f"⚠️ MATCH AMBÍGUO REJEITADO: {best_match_id} "
+                    f"(margem {margin_between:.4f} abaixo do mínimo "
+                    f"{settings.FACE_MATCH_MARGIN})"
+                )
 
+        else:
+            print(f"✅ MATCH ACEITO (único candidato): {best_match_id}")
+            accept_match = True
+
+    else:
+        print("❌ MATCH REJEITADO (distância acima do threshold)")
+
+    if accept_match:
         return {
             "studentId": best_match_id,
             "distance": round(best_distance, 4),
             "recognized": True
         }
 
-    print("❌ MATCH REJEITADO (distância acima do threshold)")
-
     return {
         "studentId": None,
         "distance": round(best_distance, 4),
         "recognized": False
-    }
+}
 
 
 # ================================

@@ -14,6 +14,9 @@ export const                ROUTES = {
     // Rotas privadas
     PRIVATE: {
         DASHBOARD: '/',
+        CALIBRATION: {
+            THRESHOLD: '/calibration/threshold',
+        },
         CLASSES: {
             LIST: '/classes',
             DETAIL: '/classes/:id',

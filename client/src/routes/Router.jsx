@@ -22,6 +22,7 @@ import AccessRequestsAdminPage from "../pages/AccessRequestsAdminPage.jsx";
 import EditPage from "../pages/EditPage.jsx";
 import ClassSubjectReportPage from "../pages/ClassSubjectReportPage.jsx";
 import ClassAttendancePage from "../pages/ClassAttendancePage.jsx";
+import ThresholdCalibrationPage from "../pages/calibration/ThresholdCalibrationPage.jsx";
 
 function AppRouter() {
   return (
@@ -249,6 +250,15 @@ function AppRouter() {
             </ProtectedRoute>
           }
         ></Route>
+        <Route
+          path={ROUTES.PRIVATE.CALIBRATION.THRESHOLD}
+          element={
+            <ProtectedRoute>
+              <ThresholdCalibrationPage />
+            </ProtectedRoute>
+          }
+        >
+        </Route>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

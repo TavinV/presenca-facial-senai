@@ -56,6 +56,7 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
     };
 
     const toggleSidebar = () => {
+        console.log("Toggling sidebar. Current state:", { isCollapsed, isMobileOpen });
         setIsCollapsed(!isCollapsed);
     };
 
@@ -134,30 +135,30 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
                 `}
         >
           {/* Logo + Toggle */}
-          <NavLink to="/" className="p-4 border-b border-red-500 flex items-center justify-between cursor-pointer">
-            {!isCollapsed ? (
-              <div className="flex items-center justify-center">
-                {/* <OVLogo /> 
-                <span className="ml-2 font-bold">Otávio Vinícius</span> */}
+          <div className="p-4 border-b border-red-500 flex items-center justify-between">
+            {/* Logo clicável */}
+            <NavLink
+              to="/"
+              className="flex items-center justify-center cursor-pointer w-fit"
+            >
+              {!isCollapsed ? (
                 <img src="/senai_type.png" className="w-[50%]" />
-              </div>
-            ) : (
-              <div className="mx-auto flex items-center justify-center">
-                {/* <OVLogo /> */}
-                <img src="/senai_s.png" className="w-[80%]" />
-              </div>
-            )}
+              ) : (
+                <img src="/senai_s.png" className="w-40" />
+              )}
+            </NavLink>
 
-            {/* Botão toggle desktop */}
+            {/* Botão separado */}
             <button
+              type="button"
               onClick={toggleSidebar}
-              className={`text-white bg-red-700 hover:bg-red-800 p-1 rounded-lg transition-colors absolute ${
+              className={`text-white bg-red-700 hover:bg-red-800 p-1 absolute rounded-lg transition-colors ${
                 isCollapsed ? "right-[-15px]" : "right-4"
               }`}
             >
               {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
             </button>
-          </NavLink>
+          </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 overflow-y-auto">
@@ -213,13 +214,15 @@ export default function Sidebar({ isMobileOpen, setIsMobileOpen, isCollapsed, se
             )}
 
             {/* OV Logo - desktop */}
-            <div className={`flex justify-start gap-6 items-center ${isCollapsed ? "px-2" : ""}`}>
+            <div
+              className={`flex justify-start gap-6 items-center ${isCollapsed ? "px-2" : ""}`}
+            >
               <OVLogo className={`${isCollapsed ? "w-8 h-8" : "w-10 h-10"}`} />
               {!isCollapsed && (
                 <p className="text-xs text-red-300 text-center mt-2">
                   por Otávio Vinicius
                 </p>
-              )} 
+              )}
             </div>
           </div>
         </aside>

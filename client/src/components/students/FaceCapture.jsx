@@ -10,15 +10,16 @@ export default function FaceCapture({
   faceInfo,
   onCancel,
   onSuccess,
+  mode = "multiple",
 }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [cameraLoaded, setCameraLoaded] = useState(false);
 
-  const [capturedImages, setCapturedImages] = useState([]); // Array para as 3 imagens
-  const [captureStep, setCaptureStep] = useState(0); // 0, 1, 2 para as 3 imagens
+  const [capturedImages, setCapturedImages] = useState([]);
+  const [captureStep, setCaptureStep] = useState(0);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [overlayType, setOverlayType] = useState(null); // 'center', 'left', 'right'
+  const [overlayType, setOverlayType] = useState(null);
 
   const [error, setError] = useState(null);
   const [stream, setStream] = useState(null);
@@ -26,6 +27,7 @@ export default function FaceCapture({
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [dots, setDots] = useState(1);
   const [loops, setLoops] = useState(0);
+
   const loadingPhrases = [
     "Criando um registro facial seguro",
     "Processando sua biometria com precisão",
@@ -48,20 +50,17 @@ export default function FaceCapture({
           return prevDots + 1;
         }
 
-        // completou um ciclo ". .. ..."
         setLoops((prevLoops) => {
           if (prevLoops + 1 >= 3) {
-            // troca a frase após 3 loops completos
             setPhraseIndex(
               (prevPhrase) => (prevPhrase + 1) % loadingPhrases.length,
             );
             return 0;
           }
-
           return prevLoops + 1;
         });
 
-        return 1; // volta para um ponto
+        return 1;
       });
     }, 1000);
 
@@ -69,7 +68,7 @@ export default function FaceCapture({
   }, []);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || mode === "single") return; // Não mostra overlay em modo single
 
     let type = "center";
     if (captureStep === 1) type = "right";
@@ -83,43 +82,11 @@ export default function FaceCapture({
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [captureStep, loading]);
-
-
-  useEffect(() => {
-    if (loading) return;
-
-    let type = "center";
-    if (captureStep === 1) type = "right";
-    if (captureStep === 2) type = "left";
-
-    setOverlayType(type);
-    setShowOverlay(true);
-
-    // some após 3s (exibição inicial)
-    let hideTimeout = setTimeout(() => {
-      setShowOverlay(false);
-    }, 3000);
-
-    // loop a cada 6s
-    const interval = setInterval(() => {
-      setShowOverlay(true);
-
-      hideTimeout = setTimeout(() => {
-        setShowOverlay(false);
-      }, 3000);
-    }, 6000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(hideTimeout);
-    };
-  }, [captureStep, loading]);
-
+  }, [captureStep, loading, mode]);
 
   useEffect(() => {
     let currentStream = null;
-    setCameraLoaded(false); // Resetar estado ao iniciar
+    setCameraLoaded(false);
 
     async function startCamera() {
       try {
@@ -134,7 +101,6 @@ export default function FaceCapture({
         setStream(mediaStream);
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
-          // Tentar forçar o play
           setTimeout(() => {
             if (videoRef.current) {
               videoRef.current.play().catch((e) => {
@@ -146,7 +112,7 @@ export default function FaceCapture({
       } catch (err) {
         console.error("Erro ao acessar câmera:", err);
         setError("Não foi possível acessar a câmera. Verifique as permissões.");
-        setCameraLoaded(true); // Para mostrar a mensagem de erro
+        setCameraLoaded(true);
       }
     }
 
@@ -159,7 +125,7 @@ export default function FaceCapture({
       setCameraLoaded(false);
     };
   }, []);
-  // Modifique a função takePhoto para capturar múltiplas imagens
+
   const takePhoto = () => {
     if (!videoRef.current) return;
 
@@ -174,24 +140,26 @@ export default function FaceCapture({
     canvas.toBlob((blob) => {
       if (!blob) return setError("Erro ao capturar imagem");
 
-      // Adiciona a imagem capturada ao array
-      const newImages = [...capturedImages, blob];
-      setCapturedImages(newImages);
-
-      // Avança para o próximo passo
-      if (captureStep < 2) {
-        setCaptureStep(captureStep + 1);
-
-        // Mostra overlay para próxima direção
-        const nextOverlay = captureStep === 0 ? "right" : "left";
-        setOverlayType(nextOverlay);
-        setShowOverlay(true);
-        setTimeout(() => setShowOverlay(false), 3000);
-      } else {
-        // Todas as 3 imagens foram capturadas
-        onCapture(newImages); // Envia array de 3 imagens
+      if (mode === "single") {
+        onCapture([blob]);
         setCapturedImages([]);
         setCaptureStep(0);
+      } else {
+        const newImages = [...capturedImages, blob];
+        setCapturedImages(newImages);
+
+        if (captureStep < 2) {
+          setCaptureStep(captureStep + 1);
+
+          const nextOverlay = captureStep === 0 ? "right" : "left";
+          setOverlayType(nextOverlay);
+          setShowOverlay(true);
+          setTimeout(() => setShowOverlay(false), 3000);
+        } else {
+          onCapture(newImages);
+          setCapturedImages([]);
+          setCaptureStep(0);
+        }
       }
     }, "image/jpeg");
   };
@@ -202,7 +170,6 @@ export default function FaceCapture({
     }, 2000);
   }
 
-  // Adicione isto antes do return, após as outras variáveis/funções
   const overlayConfig = {
     center: {
       gif: "/logo.svg",
@@ -218,7 +185,16 @@ export default function FaceCapture({
     },
   };
 
-  const config = overlayConfig[overlayType];
+  const getButtonText = () => {
+    if (mode === "single") {
+      return "Capturar Foto";
+    }
+
+    if (capturedImages.length === 0) return "Capturar Primeira Foto";
+    if (capturedImages.length === 1) return "Capturar Segunda Foto";
+    if (capturedImages.length === 2) return "Capturar Terceira Foto";
+    return "Todas Capturadas";
+  };
 
   return (
     <div className="space-y-4">
@@ -226,28 +202,39 @@ export default function FaceCapture({
         <div className="p-3 bg-red-50 text-red-700 rounded">{error}</div>
       )}
 
-      {/* Indicador de progresso das fotos */}
-      <div className="flex justify-center gap-2">
-        {[0, 1, 2].map((step) => (
-          <div
-            key={step}
-            className={`w-3 h-3 rounded-full ${
-              step === captureStep
-                ? "bg-red-600"
-                : step < captureStep
-                  ? "bg-green-500"
-                  : "bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
+      {/* Indicador de progresso - só mostra em modo multiple */}
+      {mode === "multiple" && (
+        <>
+          <div className="flex justify-center gap-2">
+            {[0, 1, 2].map((step) => (
+              <div
+                key={step}
+                className={`w-3 h-3 rounded-full ${
+                  step === captureStep
+                    ? "bg-red-600"
+                    : step < captureStep
+                      ? "bg-green-500"
+                      : "bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
 
-      <p className="text-center text-gray-600">
-        {capturedImages.length === 0 && "Posicione-se para a primeira foto"}
-        {capturedImages.length === 1 && "Vire levemente para a direita"}
-        {capturedImages.length === 2 && "Agora para a esquerda"}
-        {capturedImages.length === 3 && "Todas as fotos capturadas!"}
-      </p>
+          <p className="text-center text-gray-600">
+            {capturedImages.length === 0 && "Posicione-se para a primeira foto"}
+            {capturedImages.length === 1 && "Vire levemente para a direita"}
+            {capturedImages.length === 2 && "Agora para a esquerda"}
+            {capturedImages.length === 3 && "Todas as fotos capturadas!"}
+          </p>
+        </>
+      )}
+
+      {/* Mensagem simples para modo single */}
+      {mode === "single" && (
+        <p className="text-center text-gray-600">
+          Posicione o rosto centralizado e capture a foto
+        </p>
+      )}
 
       <div className="w-full relative">
         <video
@@ -256,9 +243,6 @@ export default function FaceCapture({
           playsInline
           onLoadedData={() => {
             setCameraLoaded(true);
-          }}
-          onLoadedStart={() => {
-            setCameraLoaded(false);
           }}
           className="rounded-lg w-full aspect-video object-cover bg-black scale-x-[-1]"
         />
@@ -270,32 +254,36 @@ export default function FaceCapture({
           <span className="text-white text-sm font-bold">Otávio Vinícius</span>
         </div>
 
-        {/* Overlay de instruções periódicas (aparece a cada 5s por 3s) */}
+        {/* Overlay de instruções - só mostra em modo multiple */}
         <AnimatePresence>
-          {cameraLoaded && showOverlay && overlayType && !loading && (
-            <motion.div
-              key={overlayType + captureStep}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="absolute inset-0 bg-black/75 z-50 pointer-events-none flex items-center justify-center"
-            >
-              <div className="flex flex-col items-center gap-5">
-                <img
-                  src={overlayConfig[overlayType]?.gif}
-                  className="w-32"
-                  alt="Instrução de direção"
-                />
-                <p className="text-white font-medium text-center text-lg max-w-md">
-                  {overlayConfig[overlayType]?.text}
-                </p>
-              </div>
-            </motion.div>
-          )}
+          {mode === "multiple" &&
+            cameraLoaded &&
+            showOverlay &&
+            overlayType &&
+            !loading && (
+              <motion.div
+                key={overlayType + captureStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="absolute inset-0 bg-black/75 z-50 pointer-events-none flex items-center justify-center"
+              >
+                <div className="flex flex-col items-center gap-5">
+                  <img
+                    src={overlayConfig[overlayType]?.gif}
+                    className="w-32"
+                    alt="Instrução de direção"
+                  />
+                  <p className="text-white font-medium text-center text-lg max-w-md">
+                    {overlayConfig[overlayType]?.text}
+                  </p>
+                </div>
+              </motion.div>
+            )}
         </AnimatePresence>
 
-        {/* Loading overlay (quando está processando) */}
+        {/* Loading overlay */}
         {loading && (
           <div className="absolute bg-black/55 bottom-0 z-50 right-0 left-0 w-full h-full pointer-events-none flex justify-center items-center">
             <div className="flex-col justify-center items-center flex gap-5">
@@ -315,17 +303,20 @@ export default function FaceCapture({
         <button
           type="button"
           onClick={takePhoto}
-          disabled={loading || capturedImages.length === 3 || showOverlay}
+          disabled={
+            loading ||
+            (mode === "multiple" && capturedImages.length === 3) ||
+            showOverlay
+          }
           className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <FaCamera />
-          {capturedImages.length === 0 && "Capturar Primeira Foto"}
-          {capturedImages.length === 1 && "Capturar Segunda Foto"}
-          {capturedImages.length === 2 && "Capturar Terceira Foto"}
-          {capturedImages.length === 3 && "Todas Capturadas"}
+          {getButtonText()}
         </button>
 
-        {capturedImages.length > 0 && (
+        {/* Botão Refazer - só mostra em modo multiple ou quando há imagem em modo single */}
+        {((mode === "multiple" && capturedImages.length > 0) ||
+          (mode === "single" && capturedImages.length > 0)) && (
           <button
             type="button"
             onClick={() => {
@@ -349,7 +340,8 @@ export default function FaceCapture({
         </button>
       </div>
 
-      {capturedImages.length > 0 && (
+      {/* Contador de fotos - só mostra em modo multiple */}
+      {mode === "multiple" && capturedImages.length > 0 && (
         <div className="text-center text-sm text-gray-600">
           Fotos capturadas: {capturedImages.length}/3
           {capturedImages.length === 3 && " - Pronto para enviar!"}
