@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, warning } from "framer-motion";
 import { FiCheckCircle, FiAlertCircle, FiInfo } from "react-icons/fi";
+import { PiWarningFill } from "react-icons/pi";
 
 export default function Toast({ message, type, onClose }) {
 
@@ -17,12 +18,14 @@ export default function Toast({ message, type, onClose }) {
     const icons = {
         success: <FiCheckCircle className="w-5 h-5" />,
         error: <FiAlertCircle className="w-5 h-5" />,
-        info: <FiInfo className="w-5 h-5" />
+        info: <FiInfo className="w-5 h-5" />,
+        warning: <PiWarningFill className="w-5 h-5" />
     };
 
     const styles = {
         success: "bg-green-50 border-green-200 text-green-800",
         error: "bg-red-50 border-red-200 text-red-800",
+        warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
         info: "bg-blue-50 border-blue-200 text-blue-800"
     };
 

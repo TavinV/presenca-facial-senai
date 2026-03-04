@@ -11,8 +11,8 @@ router.post('/', authenticateJWT("coordenador"), userController.create);
 router.post('/root', userController.createRootUserIfNotExists);
 
 router.get('/me', authenticateJWT(), userController.getMe);
-router.get('/:id', userController.getById);
-router.get('/', userController.getAll);
+router.get('/:id', authenticateJWT(), userController.getById);
+router.get('/', authenticateJWT(), userController.getAll);
 
 router.patch('/me/change-password', authenticateJWT(), userController.changePassword);
 router.patch('/:id', authenticateJWT(), validateRequest(userSchemas.update), userController.updateUser);

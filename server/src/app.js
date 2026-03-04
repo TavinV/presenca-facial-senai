@@ -23,7 +23,8 @@ app.use(corsMiddleware);
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 500,
-    message: "Muitas requisições deste IP, tente novamente mais tarde."
+    message: "Muitas requisições deste IP, tente novamente mais tarde.",
+    skip: (req) => req.path.startsWith("/socket.io")
 });
 app.use(limiter);
 

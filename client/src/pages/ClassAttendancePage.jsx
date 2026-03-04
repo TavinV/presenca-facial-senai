@@ -17,6 +17,7 @@ import useModal from "../hooks/useModal"; // Importar o hook useModal
 import SessionHeader from "../components/attendance/SessionHeader";
 import StatsCards from "../components/attendance/StatsCards";
 import BulkActions from "../components/attendance/BulkActions";
+import socket from "../services/socket";
 import StudentsTable from "../components/attendance/StudentsTable";
 
 export default function ClassAttendancePage() {
@@ -38,6 +39,40 @@ export default function ClassAttendancePage() {
         closeSession,
         loading: sessionLoading
     } = ClassesSessions();
+
+    useEffect(() => {
+        if (!id) return;
+        
+        console.log("🔄 Tentando conectar socket...");
+        socket.connect();
+
+        socket.on("connect", () => {
+            console.log("✅ Conectado! ID:", socket.id);
+            socket.emit("joinSession", id);
+        });
+
+        socket.on("connect_error", (err) => {
+            console.error("❌ Erro:", err.message);
+            setMessage({ text: "Não foi possível conectar ao servidor. As atualizações podem não aparecer em tempo real.", type: "error" });
+        });
+
+        socket.on("sessionReportUpdated", (updatedReport) => {
+            setReportData(updatedReport);
+
+            // Atualizar attendances locais também
+            if (updatedReport.attendances) {
+                setExistingAttendances(updatedReport.attendances);
+            }
+        });
+
+        return () => {
+            socket.off("connect");
+            socket.off("connect_error");
+            socket.emit("leaveSession", id);
+            socket.disconnect();
+        };
+    }, [id]);
+
 
     // Estados
     const [reportData, setReportData] = useState(null);
@@ -107,19 +142,24 @@ export default function ClassAttendancePage() {
     const allStudents = useMemo(() => {
         if (!reportData) return [];
 
-        const presentes = reportData.presentes?.map(student => ({
+        const presentes =
+          reportData.presentes?.map((student) => ({
             ...student,
+            attendanceId: student.attendanceId,
             status: "presente",
             studentId: student.id,
-            horario: student.horario ? new Date(student.horario).toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            }) : "-"
-        })) || [];
+            horario: student.horario
+              ? new Date(student.horario).toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })
+              : "-",
+          })) || [];
 
         const ausentes = reportData.ausentes?.map(student => ({
             ...student,
+            attendanceId: student.attendanceId,
             status: "ausente",
             studentId: student.id,
             horario: "-"
@@ -227,14 +267,12 @@ export default function ClassAttendancePage() {
 
     const markAsAbsent = async (student) => {
         try {
-            const attendanceId = findAttendanceIdForStudent(student.studentId);
-
-            if (!attendanceId) {
+            if (!student.attendanceId) {
                 showToast("Não foi encontrada uma presença para este aluno", "warning");
                 return;
             }
 
-            const result = await deleteAttendance(attendanceId);
+            const result = await deleteAttendance(student.attendanceId);
 
             if (result.success) {
                 showToast(`${student.nome} marcado como ausente`, "success");

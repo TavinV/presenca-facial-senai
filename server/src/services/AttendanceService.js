@@ -5,11 +5,29 @@ import ClassSession from "../models/classSessionModel.js";
 import ClassService from "./ClassService.js";
 import ClassSessionService from "./ClassSessionService.js";
 import PreAttendanceService from "./PreAttendanceService.js";
+import redis from "../config/redis.js";
+import { emitToSession } from "../socket/socketManager.js";;
 import { NotFoundError, ConflictError, ValidationError } from "../errors/appError.js";
 
 class AttendanceService extends BaseService {
     constructor() {
         super(Attendance);
+    }
+
+    getSessionReportCacheKey(sessionId) {
+        return `session:report:${sessionId}`;
+    }
+
+    async invalidateSessionReportCache(sessionId) {
+        const key = this.getSessionReportCacheKey(sessionId);
+        await redis.del(key);
+    }
+
+    async delete(id) {
+        const attendance = await Attendance.findById(id);
+        if (!attendance) throw new NotFoundError("Presença não encontrada.");
+        await redis.del(`session:report:${attendance.session.toString()}`);
+        return super.delete(id);
     }
 
     /**
@@ -65,7 +83,7 @@ class AttendanceService extends BaseService {
         if (alreadyExists)
             throw new ConflictError("Presença já registrada.");
 
-        return Attendance.create({
+        const attendance = await Attendance.create({
             session: session._id,
             class: session.class,
             student: student._id,
@@ -73,6 +91,17 @@ class AttendanceService extends BaseService {
             checkInTime: new Date(),
             recordedBy: null,
         });
+
+        await redis.del(`session:report:${session._id.toString()}`);
+        const fullReport = await this.getFullReportBySession(session._id);
+        
+        emitToSession({
+            sessionId: session._id.toString(),
+            eventName: "sessionReportUpdated",
+            payload: fullReport
+        });
+
+        return attendance;
     }
 
     /**
@@ -118,14 +147,26 @@ class AttendanceService extends BaseService {
         if (alreadyExists)
             throw new ConflictError("Presença já registrada para este aluno.");
 
-        return Attendance.create({
+        const attendance = await Attendance.create({
             session: session._id,
             class: session.class,
             student: student._id,
             status,
             checkInTime: status !== "ausente" ? new Date() : null,
-            recordedBy,
+            recordedBy: null,
         });
+
+        await redis.del(`session:report:${session._id.toString()}`);
+
+        const fullReport = await this.getFullReportBySession(session._id);
+
+        emitToSession({
+            sessionId: session._id.toString(),
+            eventName: "sessionReportUpdated",
+            payload: fullReport
+        });
+        
+        return attendance;
     }
 
     /**
@@ -152,6 +193,16 @@ class AttendanceService extends BaseService {
      * =========================================================
      */
     async getFullReportBySession(sessionId) {
+        const cacheKey = `session:report:${sessionId}`;
+        const cached = await redis.get(cacheKey);
+
+        if (cached) {
+            console.log("🔵 Cache hit for session report:", cacheKey);
+            return JSON.parse(cached);
+        }
+
+        console.log("⚪ Cache miss for session report:", cacheKey);
+
         const session = await ClassSession.findById(sessionId);
         if (!session) throw new NotFoundError("Sessão não encontrada.");
 
@@ -173,6 +224,7 @@ class AttendanceService extends BaseService {
         let presentes = attendances
         .filter(att => att.status === "presente" && att.student)
         .map(att => ({
+            attendanceId: att._id,
             nome: att.student?.name ?? "[Aluno removido]",
             matricula: att.student?.registration ?? null,
             horario: att.createdAt,
@@ -180,7 +232,8 @@ class AttendanceService extends BaseService {
         }));
 
         const atrasados = attendances.filter(att => att.status === "atrasado").map(att => ({
-            nome: att.student?.name ?? "[Aluno remobido]",
+            attendanceId: att._id,
+            nome: att.student?.name ?? "[Aluno removido]",
             matricula: att.student?.registration ?? null,
             horario: att.createdAt,
             id: att.student?._id ?? null
@@ -210,7 +263,7 @@ class AttendanceService extends BaseService {
                 id: student._id
             }));
 
-        return {
+        const report = {
             session: {
                 _id: session._id,
                 name: session.name,
@@ -221,6 +274,10 @@ class AttendanceService extends BaseService {
             ausentes,
             atrasados,
         };
+
+        await redis.set(cacheKey, JSON.stringify(report), "EX", 60);
+
+        return report;
     }
 
 
