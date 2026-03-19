@@ -258,11 +258,14 @@ Obter usuário por ID.
 
 ---
 
-### PATCH /api/users/me
+### PATCH /api/users/:id
 
-Atualizar dados do usuário autenticado.
+Atualizar dados de um usuário. Qualquer usuário autenticado pode atualizar o próprio perfil passando seu próprio ID; coordenadores podem atualizar qualquer usuário.
 
 **Autenticação:** JWT
+
+**Parâmetros:**
+- `id` - ObjectId do usuário
 
 **Request Body:**
 ```json
@@ -275,7 +278,7 @@ Atualizar dados do usuário autenticado.
 **Validação:**
 - `name`: string, 3-100 caracteres (opcional)
 - `email`: email válido (opcional)
-- `password`: não pode ser atualizada por esta rota
+- `password`: não pode ser atualizada por esta rota (usar `PATCH /api/users/me/change-password`)
 
 **Resposta (200 OK):**
 ```json
@@ -453,7 +456,7 @@ Criar nova turma.
 
 Listar todas as turmas.
 
-**Autenticação:** JWT - Role: `coordenador`
+**Autenticação:** JWT
 
 **Resposta (200 OK):**
 ```json
@@ -862,11 +865,158 @@ Listar alunos da turma.
       "_id": "507f1f77bcf86cd799439014",
       "name": "Aluno João",
       "registration": "2025001",
-      "facialId": "facial_embedding_string",
       "classes": ["I2P4"],
       "isActive": true
     }
   ]
+}
+```
+
+---
+
+### POST /api/classes/:id/students/:studentId
+
+Adicionar aluno à turma.
+
+**Autenticação:** JWT
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+- `studentId` - ObjectId do aluno
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Aluno adicionado à turma com sucesso.",
+  "data": {}
+}
+```
+
+---
+
+### DELETE /api/classes/:id/students/:studentId
+
+Remover aluno da turma.
+
+**Autenticação:** JWT
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+- `studentId` - ObjectId do aluno
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Aluno removido da turma com sucesso.",
+  "data": {}
+}
+```
+
+---
+
+### GET /api/classes/:id/subjects
+
+Listar matérias (subjects) da turma.
+
+**Autenticação:** JWT
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "",
+  "data": [
+    {
+      "code": "MAT",
+      "name": "Matemática"
+    },
+    {
+      "code": "PORT",
+      "name": "Português"
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/classes/:id/subjects
+
+Adicionar matéria à turma.
+
+**Autenticação:** JWT - Role: `coordenador`
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+
+**Request Body:**
+```json
+{
+  "code": "MAT",
+  "name": "Matemática"
+}
+```
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Matéria adicionada com sucesso.",
+  "data": {}
+}
+```
+
+---
+
+### PATCH /api/classes/:id/subjects/:subjectCode
+
+Atualizar nome de uma matéria da turma.
+
+**Autenticação:** JWT - Role: `coordenador`
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+- `subjectCode` - Código da matéria (ex: MAT)
+
+**Request Body:**
+```json
+{
+  "name": "Matemática Avançada"
+}
+```
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Matéria atualizada com sucesso.",
+  "data": {}
+}
+```
+
+---
+
+### DELETE /api/classes/:id/subjects/:subjectCode
+
+Remover matéria da turma.
+
+**Autenticação:** JWT - Role: `coordenador`
+
+**Parâmetros:**
+- `id` - ObjectId da turma
+- `subjectCode` - Código da matéria (ex: MAT)
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Matéria removida com sucesso.",
+  "data": {}
 }
 ```
 
@@ -1089,6 +1239,33 @@ Deletar sessão.
 
 ---
 
+### GET /api/class-sessions
+
+Listar todas as sessões de aula.
+
+**Autenticação:** JWT
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "",
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439015",
+      "class": "507f1f77bcf86cd799439012",
+      "teacher": "507f1f77bcf86cd799439011",
+      "room": "507f1f77bcf86cd799439013",
+      "name": "Aula 1 - Introdução",
+      "date": "2025-12-15T10:30:00Z",
+      "status": "open"
+    }
+  ]
+}
+```
+
+---
+
 ## Alunos (Students)
 
 ### POST /api/students
@@ -1200,14 +1377,14 @@ Obter aluno por ID.
 
 ---
 
-### GET /api/students/class/:classCode
+### GET /api/students/class/:id
 
-Listar alunos de uma turma específica.
+Listar alunos de uma turma específica pelo ObjectId da turma.
 
 **Autenticação:** JWT
 
 **Parâmetros:**
-- `classCode` - Código da turma (ex: I2P4)
+- `id` - ObjectId da turma
 
 **Resposta (200 OK):**
 ```json
@@ -1384,6 +1561,34 @@ Deletar aluno.
 - `id` - ObjectId do aluno
 
 **Resposta (204 No Content)**
+
+---
+
+### GET /api/students/faces
+
+Carregar dados faciais de todos os alunos cadastrados. Rota consumida internamente pela API facial para sincronização de embeddings.
+
+**Autenticação:** Header `x-facial-api-key`
+
+**Resposta (200 OK):**
+```json
+{
+  "success": true,
+  "message": "",
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439014",
+      "name": "Aluno João",
+      "registration": "2025001",
+      "classes": ["I2P4"],
+      "facialEmbedding": {
+        "embedding": "base64_ciphertext...",
+        "nonce": "base64_nonce..."
+      }
+    }
+  ]
+}
+```
 
 ---
 
@@ -2259,7 +2464,7 @@ Criar nova requisição de acesso ao sistema.
 
 Listar todas as requisições de acesso.
 
-**Autenticação:** JWT - Role: `coordenador`
+**Autenticação:** JWT
 
 **Resposta (200 OK):**
 ```json
@@ -2297,7 +2502,7 @@ Listar todas as requisições de acesso.
 
 Obter requisição de acesso por ID.
 
-**Autenticação:** JWT - Role: `coordenador`
+**Autenticação:** JWT
 
 **Parâmetros:**
 - `id` - ObjectId da requisição
@@ -2329,7 +2534,7 @@ Obter requisição de acesso por ID.
 
 Buscar requisição de acesso por CPF.
 
-**Autenticação:** JWT - Role: `coordenador`
+**Autenticação:** JWT
 
 **Parâmetros:**
 - `cpf` - CPF do solicitante (pode conter ou não pontuação)
@@ -2365,7 +2570,7 @@ Buscar requisição de acesso por CPF.
 
 Atualizar status de uma requisição de acesso (aprovar ou rejeitar).
 
-**Autenticação:** JWT - Role: `coordenador`
+**Autenticação:** JWT
 
 **Parâmetros:**
 - `id` - ObjectId da requisição
@@ -2427,6 +2632,22 @@ Atualizar status de uma requisição de acesso (aprovar ou rejeitar).
 
 ---
 
+### DELETE /api/access-requests/:id
+
+Deletar uma requisição de acesso.
+
+**Autenticação:** JWT
+
+**Parâmetros:**
+- `id` - ObjectId da requisição
+
+**Resposta (204 No Content)**
+
+**Possíveis Erros:**
+- `404 Not Found` - Requisição não encontrada
+
+---
+
 ## Status de Requisições
 
 | Status | Descrição |
@@ -2480,7 +2701,7 @@ POST /api/auth/login
 ## Notas Importantes
 
 - ✅ A rota de criar requisição **não requer autenticação** (acesso público)
-- ✅ Todas as outras rotas **exigem JWT com role `coordenador`**
+- ✅ Todas as outras rotas **exigem JWT**
 - ✅ O CPF deve ser único no sistema (validado)
 - ✅ O email deve ser único no sistema (validado)
 - ✅ Ao aprovar, o sistema cria automaticamente um usuário com os dados da requisição
@@ -2505,5 +2726,5 @@ POST /api/auth/login
 
 ---
 
-**Última atualização:** 15 de Dezembro de 2025  
+**Última atualização:** 18 de Março de 2026  
 **Versão da API:** 1.0

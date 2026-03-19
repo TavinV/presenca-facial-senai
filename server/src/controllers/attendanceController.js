@@ -78,11 +78,6 @@ const attendanceController = {
                     roomId: room,
                 });
 
-                // Limpar arquivo temporário
-                fs.unlink(imagePath, (err) => {
-                    if (err) console.error('Erro ao deletar imagem temporária:', err);
-                });
-
                 // Resposta diferente para pré-attendance
                 result.student = student;
                 if (result.type === "pre_attendance") {
@@ -100,13 +95,6 @@ const attendanceController = {
                 );
 
             } catch (error) {
-                // Limpar arquivo temporário em caso de erro
-                if (fs.existsSync(imagePath)) {
-                    fs.unlink(imagePath, (err) => {
-                        if (err) console.error('Erro ao deletar imagem temporária:', err);
-                    });
-                }
-                
                 if (error instanceof ConflictError){
                     return ApiResponse.CONFLICT(res, error.message)
                 }
@@ -135,6 +123,14 @@ const attendanceController = {
                         res,
                         "Erro ao processar reconhecimento facial."
                     );
+                }
+            } finally {
+                try {
+                    await fs.promises.unlink(imagePath);
+                } catch (cleanupError) {
+                    if (cleanupError.code !== "ENOENT") {
+                        console.error('Erro ao deletar imagem temporária:', cleanupError);
+                    }
                 }
             }
 

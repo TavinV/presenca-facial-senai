@@ -7,6 +7,8 @@
 - [Endpoints](#endpoints)
   - [Gerar Embedding Facial](#gerar-embedding-facial-encode)
   - [Reconhecer Aluno](#reconhecer-aluno-recognize)
+  - [Testar Comparação de Embeddings](#testar-comparação-de-embeddings-test-embeddings)
+  - [Calibrar Threshold](#calibrar-threshold-calibrate-threshold)
 - [Fluxos de Integração](#fluxos-de-integração)
 - [Cache de Alunos](#cache-de-alunos)
 - [Modelos de Dados](#modelos-de-dados)
@@ -24,10 +26,18 @@
 **Propósito:** API especializada em reconhecimento facial e geração de embeddings para o sistema de presença facial SENAI
 
 **Padrão de Resposta:**
-- **Sucesso (200):**
+- **Sucesso `/encode` (200):**
   ```json
   {
-    "embedding": "base64_encoded_string",
+    "embedding": "base64_ciphertext...",
+    "nonce": "base64_nonce...",
+    "photos_processed": 2
+  }
+  ```
+
+- **Sucesso `/recognize` (200):**
+  ```json
+  {
     "studentId": "507f1f77bcf86cd799439014"
   }
   ```
@@ -46,23 +56,17 @@
 ### API Key Header
 - **Header:** `x-facial-api-key`
 - **Tipo:** String
-- **Obrigatório para:** `/encode` (geração de embedding)
+- **Obrigatório para:** `/recognize` (reconhecimento pelo totem)
 - **Exemplo:**
   ```bash
-  curl -X POST http://localhost:8000/encode \
+  curl -X POST http://localhost:8000/recognize \
     -H "x-facial-api-key: sua-chave-aqui" \
+    -F "room=<roomId>" \
+    -F "candidates=[...]" \
     -F "image=@foto.jpg"
   ```
 
-### Validação
-```python
-def verify_api_key(x_facial_api_key: str = Header(...)):
-    if x_facial_api_key != FACIAL_API_KEY:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid API Key"
-        )
-```
+> **Nota:** O endpoint `/encode` não requer autenticação, mas deve ser protegido por firewall/rede para que apenas a API principal possa acessá-lo. Os endpoints `/test-embeddings` e `/calibrate-threshold` são exclusivos para desenvolvimento e não devem ser expostos em produção.
 
 ---
 
@@ -94,101 +98,108 @@ curl http://localhost:8000/health
 
 #### POST /encode
 
-Gera um embedding facial (vetorização) a partir de uma imagem.
+Gera um embedding facial (vetorização) a partir de 1 a 5 fotos do mesmo aluno. Quando múltiplas fotos são enviadas, o embedding retornado é a média dos embeddings individuais, aumentando a robustez do reconhecimento.
 
-**Autenticação:** `x-facial-api-key` (obrigatório)
+**Autenticação:** Nenhuma
 
 **Uso:** Integração com API principal para cadastro de alunos
 
 **Request (Form Data):**
-- `image` - Arquivo de imagem (JPG, PNG) contendo um único rosto (obrigatório)
+
+| Campo | Tipo | Obrigatório | Descrição |
+| ---   | ---  | ---         |    ----   |
+| images | file (lista) | Sim | 1 a 5 fotos da mesma pessoa (JPG, PNG) |
 
 **Fluxo:**
-1. Recebe arquivo de imagem
-2. Carrega imagem em memória (temporário)
-3. Detecta rosto usando `face_recognition.load_image_file()`
-4. Gera embedding 128-dimensional usando `face_recognition.face_encodings()`
-5. Converte embedding para base64
-6. Retorna embedding codificado
-7. Deleta arquivo temporário
+1. Recebe lista de imagens (1-5)
+2. Lê os bytes de cada imagem em memória
+3. Para cada imagem, detecta o rosto e gera embedding 128-dimensional
+4. Se múltiplas imagens: calcula embedding médio (np.mean)
+5. Criptografa o embedding com AES-256-GCM
+6. Retorna embedding criptografado + nonce + quantidade de fotos processadas
 
 **Resposta (200 OK):**
 ```json
 {
-  "embedding": "AAAAAAAA/z8AAAAAAAAAP8AAAAAAAAA/QAAAAAAAAD/AAAAAAAAAP8AAAAAAAAAP8AAAAAAAAAP8AAAAAAAAAP..."
+  "embedding": "AAAAAAAA/z8AAAAAAAAAP8...",
+  "nonce": "abcdef1234567890...",
+  "photos_processed": 3
 }
 ```
 
-**Exemplo cURL:**
+**Exemplo cURL (1 foto):**
 ```bash
 curl -X POST http://localhost:8000/encode \
-  -H "x-facial-api-key: sua-chave-secreta" \
-  -F "image=@aluno.jpg"
+  -F "images=@aluno.jpg"
+```
+
+**Exemplo cURL (múltiplas fotos):**
+```bash
+curl -X POST http://localhost:8000/encode \
+  -F "images=@foto1.jpg" \
+  -F "images=@foto2.jpg" \
+  -F "images=@foto3.jpg"
 ```
 
 **Exemplo Python:**
 ```python
 import requests
 
-with open('aluno.jpg', 'rb') as f:
-    files = {'image': f}
-    headers = {'x-facial-api-key': 'sua-chave-secreta'}
-    response = requests.post(
-        'http://localhost:8000/encode',
-        files=files,
-        headers=headers
-    )
-    
-embedding_base64 = response.json()['embedding']
-print(f"Embedding gerado: {embedding_base64[:50]}...")
+with open('foto1.jpg', 'rb') as f1, open('foto2.jpg', 'rb') as f2:
+    files = [
+        ('images', ('foto1.jpg', f1, 'image/jpeg')),
+        ('images', ('foto2.jpg', f2, 'image/jpeg')),
+    ]
+    response = requests.post('http://localhost:8000/encode', files=files)
+
+data = response.json()
+embedding = data['embedding']
+nonce = data['nonce']
 ```
 
 **Exemplo JavaScript (Frontend):**
 ```javascript
 const formData = new FormData();
-formData.append('image', imageFile);
+for (const imageFile of imageFiles) {
+  formData.append('images', imageFile);
+}
 
 const response = await fetch('http://localhost:8000/encode', {
   method: 'POST',
-  headers: {
-    'x-facial-api-key': 'sua-chave-secreta'
-  },
   body: formData
 });
 
-const data = await response.json();
-const embedding = data.embedding;
+const { embedding, nonce, photos_processed } = await response.json();
 ```
 
 **Possíveis Erros:**
 
-- **400 Bad Request** - Nenhum rosto detectado
+- **400 Bad Request** - Nenhuma imagem enviada
   ```json
-  {
-    "detail": "Nenhum rosto detectado na imagem"
-  }
+  { "detail": "Envie pelo menos 1 foto" }
   ```
 
-- **400 Bad Request** - Múltiplos rostos detectados
+- **400 Bad Request** - Mais de 5 fotos enviadas
   ```json
-  {
-    "detail": "Mais de um rosto detectado na imagem"
-  }
+  { "detail": "Máximo de 5 fotos permitidas" }
   ```
 
-- **401 Unauthorized** - API Key inválida ou ausente
+- **400 Bad Request** - Nenhum rosto detectado em alguma imagem
   ```json
-  {
-    "detail": "Invalid API Key"
-  }
+  { "detail": "Nenhum rosto detectado na imagem" }
+  ```
+
+- **400 Bad Request** - Múltiplos rostos em alguma imagem
+  ```json
+  { "detail": "Mais de um rosto detectado na imagem" }
   ```
 
 **Características Técnicas:**
 - Embedding: vetor de 128 dimensões (float32)
-- Formato de saída: Base64 (para transmissão por HTTP)
+- Múltiplas fotos: embedding médio via `np.mean(embeddings, axis=0)`
+- Criptografia: AES-256-GCM (retorna `embedding` + `nonce`)
 - Detecção: usa CNN (Convolutional Neural Network) do `dlib`
 - Encoding: usa modelo deep learning pré-treinado
-- Arquivo temporário é deletado automaticamente
 
 ---
 
@@ -271,6 +282,107 @@ Todo o reconhecimento acontece em memória, os dados faciais são descriptografa
   }
   ```
   
+---
+
+### Testar Comparação de Embeddings (Test Embeddings)
+
+#### POST /test-embeddings
+
+Rota de teste para comparar dois embeddings criptografados contra uma foto. Útil para depurar o reconhecimento ou validar o cadastro de diferentes alunos.
+
+**Autenticação:** Nenhuma
+
+**Request (Form Data):**
+
+| Campo | Tipo | Obrigatório | Descrição |
+| ---   | ---  | ---         |    ----   |
+| embedding1 | string (JSON) | Sim | JSON com campos `embedding`, `nonce` e `nome` (opcional) |
+| embedding2 | string (JSON) | Sim | JSON com campos `embedding`, `nonce` e `nome` (opcional) |
+| image | file | Sim | Foto para comparar contra os dois embeddings |
+
+**Formato dos campos `embedding1` / `embedding2`:**
+```json
+{
+  "embedding": "base64_ciphertext...",
+  "nonce": "base64_nonce...",
+  "nome": "Aluno João"
+}
+```
+
+**Resposta (200 OK):**
+```json
+{
+  "winner": "Aluno João",
+  "results": {
+    "Aluno João": {
+      "distance": 0.2341,
+      "passed_threshold": true
+    },
+    "Aluno Maria": {
+      "distance": 0.5812,
+      "passed_threshold": false
+    }
+  },
+  "difference": 0.3471,
+  "threshold": 0.35,
+  "conclusion": {
+    "more_similar": "Aluno João",
+    "confidence": "high"
+  }
+}
+```
+
+**Possíveis Erros:**
+- **400 Bad Request** - JSON inválido, campos faltando, imagem vazia ou rosto não detectado
+- **500 Internal Server Error** - Erro ao descriptografar embeddings
+
+---
+
+### Calibrar Threshold (Calibrate Threshold)
+
+#### POST /calibrate-threshold
+
+Rota para calibrar e testar diferentes valores de threshold de reconhecimento. Retorna análise detalhada de margem e confiança.
+
+**Autenticação:** Nenhuma
+
+**Request (Form Data):**
+
+| Campo | Tipo | Obrigatório | Descrição |
+| ---   | ---  | ---         |    ----   |
+| embedding | string (JSON) | Sim | JSON com campos `embedding`, `nonce` e `nome` (opcional) |
+| threshold | float | Sim | Valor de threshold para testar (0 < threshold ≤ 2.0) |
+| image | file | Sim | Foto para comparar |
+
+**Resposta (200 OK):**
+```json
+{
+  "distance": 0.2341,
+  "threshold_tested": 0.4,
+  "would_match": true,
+  "margin": 0.1659,
+  "margin_percentage": 41.47,
+  "confidence": "very_high",
+  "confidence_text": "Muito Alta (margem > 0.15)",
+  "default_threshold": 0.35,
+  "would_match_default": true
+}
+```
+
+**Níveis de confiança:**
+| Margem (`threshold - distance`) | Confiança |
+|---|---|
+| > 0.15 | `very_high` |
+| > 0.08 | `high` |
+| > 0.03 | `medium` |
+| > 0 (match) | `low` |
+| ≤ 0 (no match) | `no_match` |
+
+**Possíveis Erros:**
+- **400 Bad Request** - Threshold inválido (≤ 0 ou > 2.0), JSON inválido, imagem vazia ou rosto não detectado
+
+---
+
 ## Variáveis de Ambiente
 
 ### Arquivo `.env`
@@ -391,8 +503,10 @@ done
 | Endpoint | Autenticação | Uso |
 |----------|--------------|-----|
 | `/health` | Nenhuma | Health check público |
-| `/encode` | Nenhuma | Apenas API principal |
-| `/recognize` | x-facial-api-key | Totens (recomenda-se firewall) |
+| `/encode` | Nenhuma | Apenas API principal (restringir por firewall/rede) |
+| `/recognize` | x-facial-api-key | Totens |
+| `/test-embeddings` | Nenhuma | Apenas ambiente de desenvolvimento |
+| `/calibrate-threshold` | Nenhuma | Apenas ambiente de desenvolvimento |
 
 ---
 
